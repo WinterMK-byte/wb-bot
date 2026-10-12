@@ -1,5 +1,10 @@
 # WB Bot
 
+[![CI](https://github.com/WinterMK-byte/wb-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/WinterMK-byte/wb-bot/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
+![Dependencies: none](https://img.shields.io/badge/dependencies-none-brightgreen.svg)
+
 > **别人解决「怎么让多 Agent 协作」，这里解决「协作怎么不乱」。**
 
 一套给多 Agent 系统用的**协作纪律层**：单一权威的 append-only 总线、席位边界判据、

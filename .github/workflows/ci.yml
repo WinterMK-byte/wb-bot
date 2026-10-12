@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: 自测（py${{ matrix.python-version }}）
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 语法检查
+        run: |
+          python -m py_compile wbb/bus.py wbb/cli.py mcp_server.py tools/privacy_check.py
+
+      - name: 总线核心自测（19 项：并发 / 重号 / 行序 / 归档 / 锁）
+        run: python -m wbb.bus
+
+      - name: CLI 冒烟（append → verify → read → claim → view）
+        run: |
+          export WBB_BUS="$(mktemp -d)/00-bus.md"
+          printf '# 协作总线\n\n## 总线\n\n| ID | time | source | role | what | status | artifact | need |\n|---|---|---|---|---|---|---|---|\n\n---\n\n## 变更记录\n\n| 日期 | 变更 |\n|---|---|\n' > "$WBB_BUS"
+          python -m wbb.cli --bus "$WBB_BUS" append "ci|architect|冒烟测试|done|-|-"
+          python -m wbb.cli --bus "$WBB_BUS" verify
+          python -m wbb.cli --bus "$WBB_BUS" read --since 0
+          python -m wbb.cli --bus "$WBB_BUS" claim "x.md|ci"
+          python -m wbb.cli --bus "$WBB_BUS" release "x.md"
+          python -m wbb.cli --bus "$WBB_BUS" view ci
+
+  privacy:
+    name: 隐私门禁
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # 仓库公开后，任何人 push 的 PR 都会先过这道闸：
+      # 命中关键词 / PII 形状 / 零宽字符 / 可疑文件 / 越界引用 → 直接 fail。
+      # 私有词表放 privacy_words.txt（已 .gitignore），CI 上不存在也不会报错。
+      - name: 脱敏自查
+        run: python tools/privacy_check.py
+
+  mcp:
+    name: MCP server 可导入 + 注册 7 个工具
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 装 mcp 并验证
+        run: |
+          python -m pip install --quiet mcp
+          WBB_BUS="$(mktemp)" python - <<'PY'
+          import os, sys
+          sys.path.insert(0, ".")
+          import mcp_server as M
+          tools = [t.name for t in M.mcp._tool_manager.list_tools()]
+          print("注册工具:", tools)
+          expect = {"bus_append", "bus_read", "bus_verify", "bus_claim",
+                    "bus_release", "bus_locks", "bus_status"}
+          missing = expect - set(tools)
+          assert not missing, "缺少工具: %s" % missing
+          print("OK: 7 个工具齐备")
+          PY
