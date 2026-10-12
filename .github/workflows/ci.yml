@@ -65,18 +65,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: 装 mcp 并验证
+      # ⚠️ 别把 Python 直接写成 run 里的 heredoc：
+      #    YAML 块的内容带缩进，而 bash 的结束标记必须**顶格** —— 必然失配。
+      #    做成独立文件既避开这个坑，也让本地能跑同一条检查。
+      - name: 装 mcp 并验证工具齐备
         run: |
           python -m pip install --quiet mcp
-          WBB_BUS="$(mktemp)" python - <<'PY'
-          import os, sys
-          sys.path.insert(0, ".")
-          import mcp_server as M
-          tools = [t.name for t in M.mcp._tool_manager.list_tools()]
-          print("注册工具:", tools)
-          expect = {"bus_append", "bus_read", "bus_verify", "bus_claim",
-                    "bus_release", "bus_locks", "bus_status"}
-          missing = expect - set(tools)
-          assert not missing, "缺少工具: %s" % missing
-          print("OK: 7 个工具齐备")
-          PY
+          python tools/check_mcp.py
