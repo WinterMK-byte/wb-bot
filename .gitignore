@@ -1,0 +1,30 @@
+# 总线运行时产物 —— 不要提交
+*.lock
+.locks/
+locks/
+archive/
+views/
+.bak_before_archive
+
+# 本地总线数据（含真实协作内容，切勿公开）
+00-bus.md
+*-bus.md
+!templates/*.md
+
+# 私有词表（privacy_check.py 用，含真实业务词，切勿公开）
+privacy_words.txt
+tools/privacy_words.txt
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
