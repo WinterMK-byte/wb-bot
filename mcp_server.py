@@ -45,14 +45,22 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from wbb.bus import Bus, LockTimeout, SelfCheckFailed   # noqa: E402
 
-try:
-    from mcp.server.fastmcp import FastMCP
-except ImportError:                                     # pragma: no cover
-    sys.stderr.write(
-        "需要 mcp 包：pip install mcp\n"
-        "（若你只想用命令行，可直接用 wbb.cli，无需 MCP。）\n"
-    )
-    raise SystemExit(3)
+# ⚠️ mcp 2.x 把 FastMCP 改名为 MCPServer，模块路径也变了：
+#      from mcp.server.mcpserver import MCPServer   (>= 2.0)
+#      from mcp.server.fastmcp  import FastMCP      (1.x)
+#    只写一种，就会出现「本机能跑、CI 装最新版直接崩」——
+#    这正是本项目 CI 第一次假红的原因（本机 1.29.1 vs CI 2.3.0）。
+try:                                                        # mcp >= 2.0
+    from mcp.server.mcpserver import MCPServer as _MCPServer
+except ImportError:                                         # mcp 1.x
+    try:
+        from mcp.server.fastmcp import FastMCP as _MCPServer
+    except ImportError:                                     # pragma: no cover
+        sys.stderr.write(
+            "需要 mcp 包：pip install mcp\n"
+            "（若你只想用命令行，可直接用 wbb.cli，无需 MCP。）\n"
+        )
+        raise SystemExit(3)
 
 _BUS_PATH: str = ""
 
@@ -66,7 +74,7 @@ def _bus() -> Bus:
     return Bus(path)
 
 
-mcp = FastMCP("wb-bot")
+mcp = _MCPServer("wb-bot")
 
 
 @mcp.tool()
