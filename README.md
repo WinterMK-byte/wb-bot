@@ -1,6 +1,7 @@
 # WB Bot
 
 [![CI](https://github.com/WinterMK-byte/wb-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/WinterMK-byte/wb-bot/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/WinterMK-byte/wb-bot?color=blue)](https://github.com/WinterMK-byte/wb-bot/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 ![Dependencies: none](https://img.shields.io/badge/dependencies-none-brightgreen.svg)
