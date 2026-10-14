@@ -129,7 +129,7 @@ if not RE_TIMESTAMP.match(cell_time):
 **现场**：任务的提示词里写死了一个绝对路径：
 
 ```
-读取 …\Desktop\old-plan.md，推一份当天的执行清单
+读取 …/plans/old-plan.md，推一份当天的执行清单
 ```
 
 而这份文件早在一次重构里被换掉、迁到了新目录。旧路径**不存在**。

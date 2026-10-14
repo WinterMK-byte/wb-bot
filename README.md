@@ -10,7 +10,7 @@
 > **别人解决「怎么让多 Agent 协作」，这里解决「协作怎么不乱」。**
 
 一套给多 Agent 系统用的**协作纪律层**：单一权威的 append-only 总线、席位边界判据、
-以及一份从真实事故里长出来的**反错清单**。
+跨运行时的交接契约、以及一份从真实事故里长出来的**反错清单**。
 
 它不是又一个 agent 框架 —— 它**不调度模型、不管上下文、不管工具**。
 它只管一件事：**当多个 Agent（或多人 + 多个 Agent）真的在同一个仓库里干活时，
@@ -23,6 +23,10 @@ python -m wbb.cli --bus ./00-bus.md verify
 
 零第三方依赖（MCP server 除外）。CJK 路径安全。MIT。
 
+> **v0.2 新增**：除了"一个运行时内的多会话"，现在也覆盖"**多个不同 Agent 运行时之间**"
+> —— 能力边界怎么切、主导权归谁、交接件有哪五种、定时任务散在四个调度源时怎么不出乱、
+> 多个进程抢同一份稀缺资源时怎么协调。见 [跨 Agent 治理层](#v02--跨-agent-治理层)。
+
 ---
 
 ## 目录
@@ -33,6 +37,7 @@ python -m wbb.cli --bus ./00-bus.md verify
 - [四条设计不变量](#四条设计不变量)
 - [MCP 接入](#mcp-接入)
 - [教训库（本项目的重点）](#教训库本项目的重点)
+- [v0.2 · 跨 Agent 治理层](#v02--跨-agent-治理层)
 - [文档](#文档)
 - [免责声明](#免责声明)
 
@@ -204,6 +209,38 @@ bus_status   概况
 
 ---
 
+## v0.2 · 跨 Agent 治理层
+
+v0.1 解决的是**一个运行时内多个会话**怎么共享一条总线。
+v0.2 往上加了一层：**多个不同 Agent 运行时之间**怎么协作与治理。
+
+| 文档 | 解决什么 | 核心洞察 |
+|---|---|---|
+| [`docs/06-heterogeneous-agents.md`](docs/06-heterogeneous-agents.md) | 两个不同厂商的 Agent 怎么通讯 | **一侧常常没有 API** → 不能推送，只能"单一总线 + 水位线" |
+| [`docs/07-seat-governance.md`](docs/07-seat-governance.md) | 谁有权改什么 | 多 Agent 最贵的成本**不是算力，是越界**；配"代劳三件套" |
+| [`docs/08-routing.md`](docs/08-routing.md) | 一句话进来归谁接 | **口语 → 责任方 → 入口**；"能力"和"归属"是两张不同的表 |
+| [`docs/09-multi-scheduler.md`](docs/09-multi-scheduler.md) | 定时任务散在四个源怎么办 | 四源口径不同；**写死的路径会静默失效** |
+| [`docs/10-resource-lease.md`](docs/10-resource-lease.md) | 多进程抢同一份稀缺资源（⚠️ 平台绑定案例） | **活跃判定必须双轨**：只认租约 = 第一天就瞎 |
+
+配套：
+
+| 件 | 作用 |
+|---|---|
+| [`templates/03-routing-card.md`](templates/03-routing-card.md) | 路由卡（口语 → 责任方 → 入口 + 归属表） |
+| [`templates/04-seat-boundaries.md`](templates/04-seat-boundaries.md) | 席位边界 + 代劳三件套（贴在注入点） |
+| [`templates/05-resource-groups.json`](templates/05-resource-groups.json) | 资源组清单（声明式，新组不改代码） |
+| [`wbb/lease.py`](wbb/lease.py) | 资源租约**精简参考实现**（10 项自测，含双轨判定） |
+| [`skill/healthcheck.md`](skill/healthcheck.md) | 协作层体检：ID 唯一 / 行序 / 插入点 / 水位线 / 备份 |
+| [`skill/onboarding.md`](skill/onboarding.md) | 新成员接入 + **全员知会**（注入点同步） |
+| [`skill/ownership-audit.md`](skill/ownership-audit.md) | 会话归属审计：用实测证据，不用自述 |
+
+```bash
+# 租约参考实现自测
+python -m wbb.lease
+```
+
+---
+
 ## 文档
 
 | 文件 | 内容 |
@@ -213,6 +250,12 @@ bus_status   概况
 | [`docs/03-seats.md`](docs/03-seats.md) | 席位设计：边界判据、代劳条款 |
 | [`docs/04-bus-protocol.md`](docs/04-bus-protocol.md) | 总线协议：列定义、ID 规则、锁、体检 |
 | [`docs/05-injection.md`](docs/05-injection.md) | 注入点：哪些位置才算"通知" |
+| [`docs/06-heterogeneous-agents.md`](docs/06-heterogeneous-agents.md) | 跨运行时协作：单一总线 + 水位线 |
+| [`docs/07-seat-governance.md`](docs/07-seat-governance.md) | 席位治理：边界判据、代劳三件套、规则怎么改 |
+| [`docs/08-routing.md`](docs/08-routing.md) | 路由层：口语 → 责任方 → 入口 |
+| [`docs/09-multi-scheduler.md`](docs/09-multi-scheduler.md) | 多调度源：四源口径 + 统一纪律 |
+| [`docs/10-resource-lease.md`](docs/10-resource-lease.md) | 跨进程资源租约（平台绑定案例） |
+| [`docs/lessons.md`](docs/lessons.md) | **10 条真实事故教训**（本项目重点） |
 | [`skill/SKILL.md`](skill/SKILL.md) | 给 Agent 用的操作指引（可直接装成 Skill） |
 
 ---
@@ -281,8 +324,8 @@ python tools/privacy_check.py
 
 ## 免责声明
 
-本项目是**独立社区项目**，与腾讯、DeepSeek 及任何模型厂商**无关联**，
-**未被其赞助、认可或背书**。
+本项目是**独立社区项目**，与任何模型厂商、软件厂商**无关联**，
+**未被其赞助、认可或背书**。为保持中立，文档中不出现任何具体平台的名称。
 
 总线文件默认是**纯文本 Markdown**，请自行确认其中不含敏感信息后再提交到公开仓库。
 

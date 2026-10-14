@@ -6,6 +6,11 @@ archive/
 views/
 .bak_before_archive
 
+# 资源租约运行时产物 —— 不要提交
+leases.json
+*-leases.json
+*vram_events.jsonl
+
 # 本地总线数据（含真实协作内容，切勿公开）
 00-bus.md
 *-bus.md

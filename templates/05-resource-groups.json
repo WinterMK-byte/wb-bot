@@ -1,0 +1,49 @@
+{
+  "_comment": "资源组清单模板（声明式）。新组接入 = 加一段，不改代码。见 docs/10-resource-lease.md",
+
+  "groups": {
+    "example-group-a": {
+      "desc": "共用同一模型服务的若干进程 → 合成一个组（组内不互斥）",
+      "need_mib": 7000,
+      "ports": [9000],
+      "models": ["example-model:7b"],
+      "probe": "service_resident",
+      "release": "unload_models"
+    },
+    "example-group-b": {
+      "desc": "独立的服务，按端口占用判定",
+      "need_mib": 3000,
+      "ports": [8080, 8081],
+      "models": [],
+      "probe": "port_listening",
+      "release": "kill_ports"
+    },
+    "example-group-c": {
+      "desc": "占用不确定（如游戏/剪辑），只提示不动手",
+      "need_mib": null,
+      "ports": [],
+      "models": [],
+      "probe": "proc_alive",
+      "release": "ask_manual"
+    }
+  },
+
+  "policy": {
+    "_comment_never_touch": "看起来在占资源、实际不参与/属基础设施的端口 → 永不参与释放",
+    "never_touch_ports": [0, 0],
+    "_comment_never_kill": "绝不终止的进程（宿主本体、系统关键进程）",
+    "never_kill_procs": ["explorer.exe", "System", "Idle"],
+    "heartbeat_interval_s": 60,
+    "heartbeat_timeout_s": 120,
+    "default_ttl_s": 1800
+  },
+
+  "exit_codes": {
+    "0": "成功拿到租约",
+    "5": "有冲突，待裁定（停手，请示人）",
+    "6": "抢到了但资源仍不足（停手，不硬跑）"
+  },
+
+  "_probe_enum": ["port_listening", "service_resident", "proc_alive", "any"],
+  "_release_enum": ["kill_ports", "unload_models", "ask_manual", "none"]
+}
