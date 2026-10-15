@@ -64,10 +64,20 @@ jobs:
 
       # ★ 本项目主打「**CJK 路径安全**」—— 但 CI 只跑 Linux 的话，这句话等于没验证。
       #   这个 job 就是把这个卖点在**真实 Windows** 上跑一遍。
-      - name: 自测（Windows）
+      # 诊断：本机（UTF-8）永远发现不了的问题，先看清这个环境到底是什么编码
+      - name: 环境诊断（编码 / shell / 文件系统编码）
+        shell: bash
         run: |
-          python -X utf8 -m wbb.bus
-          python -X utf8 -m wbb.lease
+          echo "shell: $0"
+          python -c "import sys,locale;print('stdout.encoding =',sys.stdout.encoding);print('filesystemencoding =',sys.getfilesystemencoding());print('preferred =',locale.getpreferredencoding())"
+
+      # ⚠️ Windows runner 的默认 shell 是 **pwsh** —— 中文输出在那里会出问题
+      #    （本机 UTF-8 环境永远发现不了）。所以本 job **全部显式用 bash**。
+      - name: 自测（Windows）
+        shell: bash
+        run: |
+          python -m wbb.bus
+          python -m wbb.lease
 
       - name: ★ 在**中文路径**下跑完整流程
         shell: bash
@@ -83,7 +93,8 @@ jobs:
           python -X utf8 -m wbb.cli --bus "$B" status
 
       - name: 开箱可用性（Windows）
-        run: python -X utf8 tools/usability_check.py
+        shell: bash
+        run: python tools/usability_check.py
 
   privacy:
     name: 隐私门禁
