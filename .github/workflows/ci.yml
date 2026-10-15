@@ -30,7 +30,7 @@ jobs:
       - name: 总线核心自测（19 项：并发 / 重号 / 行序 / 归档 / 锁）
         run: python -m wbb.bus
 
-      - name: 资源租约自测（10 项：双轨判定 / 退出码 / 僵尸抢占 / 不足即停）
+      - name: 资源租约自测（15 项：双轨判定 + 降级轨 / 退出码 / 僵尸抢占 / 不足即停）
         run: python -m wbb.lease
 
       - name: CLI 冒烟（append → verify → read → claim → view）

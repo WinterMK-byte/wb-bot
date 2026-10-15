@@ -26,6 +26,7 @@ EXIT_OK = 0            # 成功拿到租约
 EXIT_INTERNAL = 1      # 内部错误
 EXIT_CONFLICT = 5      # 有冲突，待裁定（停手，请示人）
 EXIT_INSUFFICIENT = 6  # 抢到了但资源仍不足（停手，不硬跑）
+EXIT_DEGRADED = 7      # 有组「占着资源、却跑在慢路径上」（见 Probe.degraded）
 
 
 class Probe:
@@ -44,13 +45,30 @@ class Probe:
     def release(self, spec: dict, self_pids: set) -> None:
         raise NotImplementedError
 
+    def degraded(self, spec: dict, self_pids: set) -> List[dict]:
+        """★ 第三轨：该组是否**占着资源、却跑在慢路径上**。
+
+        为什么需要这一轨 —— 很多服务在资源不足时**不报错，而是悄悄降级**
+        （把算不完的部分丢给更慢的路径）。从外面看是"正常运行"，实际慢一个数量级。
+
+        真实实现示例（显存场景）：查服务自己的状态接口，比较两个数：
+          `size`       这份工作**总共**占多少
+          `size_vram`  其中有多少在**高速资源**里
+        两者不等 ⇒ 有部分跑在慢路径上。留一点容差（量化/对齐会有几 MiB 记账差异）。
+
+        返回：降级项列表（**空 = 无降级**）。每项至少含 `{"name": ..., "slack": ...}`。
+        """
+        return []
+
 
 class FakeProbe(Probe):
     """自测用：可控的假探测。"""
 
-    def __init__(self, free_mib: int = 20000, external: Optional[Dict[str, bool]] = None):
+    def __init__(self, free_mib: int = 20000, external: Optional[Dict[str, bool]] = None,
+                 degraded: Optional[Dict[str, List[dict]]] = None):
         self._free = free_mib
         self._external = dict(external or {})   # 组名 -> 是否(实测)活跃
+        self._degraded = dict(degraded or {})   # 组名 -> 降级项列表
         self.released: List[str] = []
 
     def free(self) -> int:
@@ -65,6 +83,9 @@ class FakeProbe(Probe):
     def release(self, spec: dict, self_pids: set) -> None:
         self.released.append(spec["name"])
         self._external[spec["name"]] = False
+
+    def degraded(self, spec: dict, self_pids: set) -> List[dict]:
+        return list(self._degraded.get(spec["name"], []))
 
 
 def _pid_alive(pid: int) -> bool:
@@ -238,11 +259,28 @@ class LeaseManager:
         self._write_leases(self._drop(leases, group))
         return EXIT_OK, "已释放租约：%s" % group
 
+    def degraded_groups(self) -> Dict[str, List[dict]]:
+        """★ 第三条轨：占着资源、但**跑在慢路径上**的组。
+
+        前两轨（租约轨 / 实测轨）回答"**有没有人在用**"；
+        这一轨回答"**用得对不对**" —— 服务静默降级时不报错，只能靠比对发现。
+
+        返回 {组名: [降级项, ...]}；**空 dict = 无降级**。
+        """
+        self_pids = self._self_pids()
+        out: Dict[str, List[dict]] = {}
+        for name, spec in self.groups().items():
+            d = self.probe.degraded(dict(spec, name=name), self_pids)
+            if d:
+                out[name] = d
+        return out
+
     def status(self) -> dict:
         leases = self._reap(self._read_leases())
         return {
             "free_mib": self.probe.free(),
             "active": self.active_groups(leases),
+            "degraded": self.degraded_groups(),
             "leases": {g: {"pid": r.get("pid")} for g, r in leases.items()},
         }
 
@@ -323,6 +361,20 @@ def _selftest() -> int:
     leases["stale"] = {"pid": os.getpid(), "heartbeat": 0, "expire_at": 1e18, "ttl_s": 10}
     m._write_leases(leases)
     check("心跳过期的僵尸租约被清", "stale" not in m.active_groups())
+
+    # ★ 第三条轨：降级检测
+    probeD = FakeProbe(free_mib=20000,
+                       degraded={"gamma": [{"name": "demo-7b", "slack": 1412}]})
+    mD = LeaseManager(gp, os.path.join(tmp, "ld.json"), probeD)
+    dg = mD.degraded_groups()
+    check("降级轨能发现被降级的组", bool(dg.get("gamma")), str(dg))
+    check("降级项带 slack 数值",
+          bool(dg.get("gamma")) and dg["gamma"][0]["slack"] == 1412)
+    check("无降级的组不误报", "alpha" not in dg and "beta" not in dg)
+    check("status 含 degraded 段", "degraded" in mD.status())
+    check("无降级时 degraded 为空 dict",
+          LeaseManager(gp, os.path.join(tmp, "ld2.json"),
+                       FakeProbe(free_mib=20000)).degraded_groups() == {})
 
     print()
     print("结果：%d 项通过 / %d 项失败" % (total[0] - len(fails), len(fails)))

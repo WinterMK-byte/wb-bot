@@ -221,7 +221,7 @@ v0.2 往上加了一层：**多个不同 Agent 运行时之间**怎么协作与�
 | [`docs/07-seat-governance.md`](docs/07-seat-governance.md) | 谁有权改什么 | 多 Agent 最贵的成本**不是算力，是越界**；配"代劳三件套" |
 | [`docs/08-routing.md`](docs/08-routing.md) | 一句话进来归谁接 | **口语 → 责任方 → 入口**；"能力"和"归属"是两张不同的表 |
 | [`docs/09-multi-scheduler.md`](docs/09-multi-scheduler.md) | 定时任务散在四个源怎么办 | 四源口径不同；**写死的路径会静默失效** |
-| [`docs/10-resource-lease.md`](docs/10-resource-lease.md) | 多进程抢同一份稀缺资源（⚠️ 平台绑定案例） | **活跃判定必须双轨**：只认租约 = 第一天就瞎 |
+| [`docs/10-resource-lease.md`](docs/10-resource-lease.md) | 多进程抢同一份稀缺资源（⚠️ 平台绑定案例） | **活跃判定必须双轨**；再加**降级轨**（谁占着却跑在慢路径上） |
 
 配套：
 
@@ -230,7 +230,7 @@ v0.2 往上加了一层：**多个不同 Agent 运行时之间**怎么协作与�
 | [`templates/03-routing-card.md`](templates/03-routing-card.md) | 路由卡（口语 → 责任方 → 入口 + 归属表） |
 | [`templates/04-seat-boundaries.md`](templates/04-seat-boundaries.md) | 席位边界 + 代劳三件套（贴在注入点） |
 | [`templates/05-resource-groups.json`](templates/05-resource-groups.json) | 资源组清单（声明式，新组不改代码） |
-| [`wbb/lease.py`](wbb/lease.py) | 资源租约**精简参考实现**（10 项自测，含双轨判定） |
+| [`wbb/lease.py`](wbb/lease.py) | 资源租约**精简参考实现**（15 项自测，含双轨判定 + **降级轨**） |
 | [`skill/healthcheck.md`](skill/healthcheck.md) | 协作层体检：ID 唯一 / 行序 / 插入点 / 水位线 / 备份 |
 | [`skill/onboarding.md`](skill/onboarding.md) | 新成员接入 + **全员知会**（注入点同步） |
 | [`skill/ownership-audit.md`](skill/ownership-audit.md) | 会话归属审计：用实测证据，不用自述 |
@@ -258,6 +258,7 @@ python -m wbb.lease
 | [`docs/10-resource-lease.md`](docs/10-resource-lease.md) | 跨进程资源租约（平台绑定案例） |
 | [`docs/lessons.md`](docs/lessons.md) | **10 条真实事故教训**（本项目重点） |
 | [`skill/SKILL.md`](skill/SKILL.md) | 给 Agent 用的操作指引（可直接装成 Skill） |
+| [`CHANGELOG.md`](CHANGELOG.md) | **更新日志**（v0.1 → v0.2.1） |
 
 ---
 

@@ -10,11 +10,13 @@ v0.2 起另含 :class:`wbb.lease.LeaseManager`：跨进程资源租约（多个�
 """
 
 from .bus import Bus, BusError, LockTimeout, SelfCheckFailed
-from .lease import EXIT_CONFLICT, EXIT_INSUFFICIENT, EXIT_OK, LeaseManager, Probe
+from .lease import (EXIT_CONFLICT, EXIT_DEGRADED, EXIT_INSUFFICIENT, EXIT_OK,
+                    LeaseManager, Probe)
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __all__ = [
     "Bus", "BusError", "LockTimeout", "SelfCheckFailed",
-    "LeaseManager", "Probe", "EXIT_OK", "EXIT_CONFLICT", "EXIT_INSUFFICIENT",
+    "LeaseManager", "Probe",
+    "EXIT_OK", "EXIT_CONFLICT", "EXIT_INSUFFICIENT", "EXIT_DEGRADED",
     "__version__",
 ]
