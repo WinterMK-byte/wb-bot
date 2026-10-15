@@ -261,6 +261,8 @@ python -m wbb.lease
 | [`docs/09-multi-scheduler.md`](docs/09-multi-scheduler.md) | 多调度源：四源口径 + 统一纪律 |
 | [`docs/10-resource-lease.md`](docs/10-resource-lease.md) | 跨进程资源租约（平台绑定案例） |
 | [`docs/11-usage.md`](docs/11-usage.md) | **怎么用（四种场景）** —— 最短上手 / 接进项目 / MCP / 资源租约 |
+| [`docs/12-handoff-discipline.md`](docs/12-handoff-discipline.md) | **交接纪律** —— 派单为什么会丢：**投递双通道 / 回执义务 / 三种失败模式** |
+| [`docs/13-auto-wake.md`](docs/13-auto-wake.md) | **一句话派单与自动唤醒** —— 含**实测数据**（30 秒延迟）、两条路、代价边界 |
 | [`docs/lessons.md`](docs/lessons.md) | **10 条真实事故教训**（本项目重点） |
 | [`skill/SKILL.md`](skill/SKILL.md) | 给 Agent 用的操作指引（可直接装成 Skill） |
 | [`CHANGELOG.md`](CHANGELOG.md) | **更新日志**（v0.1 → v0.2.1） |
