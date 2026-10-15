@@ -117,6 +117,10 @@ python -m wbb.bus          # 或 python -m wbb.cli selftest
 export WBB_BUS=/abs/path/to/00-bus.md      # Windows: setx WBB_BUS ...
 ```
 
+> 📖 **更完整的用法（四种场景 + 六段内容说明 + 常见坑）见
+> [`docs/11-usage.md`](docs/11-usage.md)** ——
+> 最短上手 / **接进真实项目** / **让 Agent 自己读写（MCP）** / 多进程抢资源。
+
 ---
 
 ## 四条设计不变量
@@ -256,6 +260,7 @@ python -m wbb.lease
 | [`docs/08-routing.md`](docs/08-routing.md) | 路由层：口语 → 责任方 → 入口 |
 | [`docs/09-multi-scheduler.md`](docs/09-multi-scheduler.md) | 多调度源：四源口径 + 统一纪律 |
 | [`docs/10-resource-lease.md`](docs/10-resource-lease.md) | 跨进程资源租约（平台绑定案例） |
+| [`docs/11-usage.md`](docs/11-usage.md) | **怎么用（四种场景）** —— 最短上手 / 接进项目 / MCP / 资源租约 |
 | [`docs/lessons.md`](docs/lessons.md) | **10 条真实事故教训**（本项目重点） |
 | [`skill/SKILL.md`](skill/SKILL.md) | 给 Agent 用的操作指引（可直接装成 Skill） |
 | [`CHANGELOG.md`](CHANGELOG.md) | **更新日志**（v0.1 → v0.2.1） |
