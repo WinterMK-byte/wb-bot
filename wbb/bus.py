@@ -636,8 +636,33 @@ class Bus:
 # --------------------------------------------------------------------------
 # 自测：python -m wbb.bus
 # --------------------------------------------------------------------------
+def _safe_stdout() -> None:
+    """★ Windows 控制台默认**不是** UTF-8 —— 直接 print("✅") 会
+    ``UnicodeEncodeError: 'gbk' codec can't encode character '\\u2705'``。
+
+    本项目主打「CJK 路径安全」，用户很可能就在 Windows 控制台里跑自测 ——
+    崩在这里等于卖点自打脸。所以先把 stdout 切成 UTF-8（切不动也不报错）。
+    """
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
+
+def _marks():
+    """能在当前 stdout 编码下输出就用符号，否则降级成 ASCII（老终端兜底）。"""
+    enc = getattr(sys.stdout, "encoding", None) or "utf-8"
+    try:
+        "✅".encode(enc)
+    except Exception:
+        return "[OK]", "[FAIL]"
+    return "✅", "❌"
+
+
 def _selftest() -> int:
     import tempfile
+    _safe_stdout()
+    OK_M, FAIL_M = _marks()
 
     tmp = tempfile.mkdtemp(prefix="wbb-selftest-")
     bus = Bus(os.path.join(tmp, "00-bus.md"))
@@ -645,7 +670,8 @@ def _selftest() -> int:
     passed = [0]
 
     def check(name: str, cond: bool, detail: str = "") -> None:
-        print("  %s %s%s" % ("✅" if cond else "❌", name, (" — " + detail) if detail else ""))
+        print("  %s %s%s" % (OK_M if cond else FAIL_M, name,
+                             (" — " + detail) if detail else ""))
         if cond:
             passed[0] += 1
         else:

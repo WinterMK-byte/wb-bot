@@ -16,6 +16,14 @@ import subprocess
 import sys
 import tempfile
 
+# ★ Windows 控制台默认**不是** UTF-8 —— 直接 print("📋") 会
+#   ``UnicodeEncodeError: 'gbk' codec can't encode character``。
+#   本项目主打 CJK 安全，崩在这里等于自打脸。先切 UTF-8；切不动也不报错。
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PY = sys.executable
 TMP = os.path.join(tempfile.gettempdir(), "wbb-usability")

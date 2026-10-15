@@ -21,6 +21,9 @@ import os
 import time
 from typing import Callable, Dict, List, Optional, Tuple
 
+# 输出编码兜底：Windows 控制台默认不是 UTF-8，直接 print("✅") 会崩
+from .bus import _marks, _safe_stdout
+
 # ---------- 退出码（调用方靠它决策，见 docs/10 §四） ----------
 EXIT_OK = 0            # 成功拿到租约
 EXIT_INTERNAL = 1      # 内部错误
@@ -296,6 +299,8 @@ class LeaseManager:
 # ============================ 自测 ============================
 def _selftest() -> int:
     import tempfile
+    _safe_stdout()
+    OK_M, FAIL_M = _marks()
 
     tmp = tempfile.mkdtemp(prefix="wbb-lease-")
     gp = os.path.join(tmp, "groups.json")
@@ -316,7 +321,8 @@ def _selftest() -> int:
 
     def check(name: str, cond: bool, detail: str = "") -> None:
         total[0] += 1
-        print("  %s %s%s" % ("✅" if cond else "❌", name, (" — " + detail) if detail else ""))
+        print("  %s %s%s" % (OK_M if cond else FAIL_M, name,
+                             (" — " + detail) if detail else ""))
         if not cond:
             fails.append(name)
 

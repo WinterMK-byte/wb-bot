@@ -30,7 +30,7 @@ import sys
 from typing import List, Optional
 
 from . import __version__
-from .bus import Bus, LockTimeout, SelfCheckFailed
+from .bus import Bus, LockTimeout, SelfCheckFailed, _safe_stdout
 
 
 def _bus_from_args(a: argparse.Namespace) -> Bus:
@@ -44,6 +44,11 @@ def _bus_from_args(a: argparse.Namespace) -> Bus:
 
 
 def main(argv: Optional[List[str]] = None) -> int:
+    # ★ Windows 控制台默认**不是** UTF-8 —— 不处理的话中文输出会**乱码**
+    #   （严重时在别处直接 UnicodeEncodeError）。CLI 是主入口，这点最致命。
+    #   ⚠️ `PYTHONIOENCODING` 的优先级**高于** `-X utf8`，
+    #      所以只能在本进程里 reconfigure，不能靠启动参数。
+    _safe_stdout()
     ap = argparse.ArgumentParser(
         prog="wbb",
         description="WB Bot —— 多 Agent 协作的纪律层（命令行）",
