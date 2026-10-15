@@ -27,7 +27,7 @@ jobs:
         run: |
           python -m py_compile wbb/bus.py wbb/lease.py wbb/cli.py mcp_server.py tools/privacy_check.py
 
-      - name: 总线核心自测（19 项：并发 / 重号 / 行序 / 归档 / 锁）
+      - name: 总线核心自测（20 项：并发 / 重号 / 行序 / 表格连续性 / 归档 / 锁）
         run: python -m wbb.bus
 
       - name: 资源租约自测（15 项：双轨判定 + 降级轨 / 退出码 / 僵尸抢占 / 不足即停）
@@ -43,6 +43,9 @@ jobs:
           python -m wbb.cli --bus "$WBB_BUS" claim "x.md|ci"
           python -m wbb.cli --bus "$WBB_BUS" release "x.md"
           python -m wbb.cli --bus "$WBB_BUS" view ci
+
+      - name: 开箱可用性（模拟「新人拿到仓库」的完整路径）
+        run: python tools/usability_check.py
 
   privacy:
     name: 隐私门禁

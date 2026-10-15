@@ -105,7 +105,7 @@ python -m wbb.cli --bus ./00-bus.md verify
 python -m wbb.cli --bus ./00-bus.md read --since 0
 ```
 
-自带自测（19 项，覆盖并发、重号、行序、归档、锁）：
+自带自测（20 项，覆盖并发、重号、行序、**表格连续性**、归档、锁）：
 
 ```bash
 python -m wbb.bus          # 或 python -m wbb.cli selftest
