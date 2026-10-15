@@ -13,7 +13,7 @@ from .bus import Bus, BusError, LockTimeout, SelfCheckFailed
 from .lease import (EXIT_CONFLICT, EXIT_DEGRADED, EXIT_INSUFFICIENT, EXIT_OK,
                     LeaseManager, Probe)
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 __all__ = [
     "Bus", "BusError", "LockTimeout", "SelfCheckFailed",
     "LeaseManager", "Probe",

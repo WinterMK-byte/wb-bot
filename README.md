@@ -87,8 +87,22 @@ Agent 不是"一堆实例"，而是**有职责边界的位置**：谁做判断�
 
 ## 快速开始
 
+**两条路**：想直接用 → pip 装；想看源码 / 改代码 → clone。
+
+### 方式一 · pip 装（推荐）
+
 ```bash
-git clone <this-repo>
+pip install wb-bot              # 核心零依赖
+pip install "wb-bot[mcp]"       # 只有要用 MCP server 才需要
+
+wbb --bus ./00-bus.md append "alice|architect|拆了两个任务，派给 bob|done|tasks/T01.md|bob"
+wbb --bus ./00-bus.md verify
+```
+
+### 方式二 · 直接用仓库（零安装）
+
+```bash
+git clone https://github.com/WinterMK-byte/wb-bot
 cd wb-bot
 
 # 1. 建一份带结构的空总线（用模板）
@@ -265,7 +279,9 @@ python -m wbb.lease
 | [`docs/13-auto-wake.md`](docs/13-auto-wake.md) | **一句话派单与自动唤醒** —— 含**实测数据**（30 秒延迟）、两条路、代价边界 |
 | [`docs/lessons.md`](docs/lessons.md) | **10 条真实事故教训**（本项目重点） |
 | [`skill/SKILL.md`](skill/SKILL.md) | 给 Agent 用的操作指引（可直接装成 Skill） |
-| [`CHANGELOG.md`](CHANGELOG.md) | **更新日志**（v0.1 → v0.2.1） |
+| [`docs/README.md`](docs/README.md) | **文档索引**（按「该先读哪篇」排） |
+| [`CHANGELOG.md`](CHANGELOG.md) | **更新日志**（v0.1 → v0.3.1） |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | 怎么提 issue / PR |
 
 ---
 

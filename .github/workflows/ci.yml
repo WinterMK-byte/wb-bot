@@ -47,6 +47,38 @@ jobs:
       - name: 开箱可用性（模拟「新人拿到仓库」的完整路径）
         run: python tools/usability_check.py
 
+  windows:
+    name: Windows · CJK 路径（卖点验证）
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      # ★ 本项目主打「**CJK 路径安全**」—— 但 CI 只跑 Linux 的话，这句话等于没验证。
+      #   这个 job 就是把这个卖点在**真实 Windows** 上跑一遍。
+      - name: 自测（Windows）
+        run: |
+          python -m wbb.bus
+          python -m wbb.lease
+
+      - name: ★ 在**中文路径**下跑完整流程
+        shell: bash
+        run: |
+          mkdir -p "测试目录/中文 路径/子目录"
+          cp templates/00-bus.md "测试目录/中文 路径/子目录/00-bus.md"
+          B="测试目录/中文 路径/子目录/00-bus.md"
+          python -m wbb.cli --bus "$B" append "alice|architect|在中文路径下写一条|done|-|bob"
+          python -m wbb.cli --bus "$B" verify
+          python -m wbb.cli --bus "$B" read --since 0
+          python -m wbb.cli --bus "$B" claim "共享.md|ci"
+          python -m wbb.cli --bus "$B" release "共享.md"
+          python -m wbb.cli --bus "$B" status
+
+      - name: 开箱可用性（Windows）
+        run: python tools/usability_check.py
+
   privacy:
     name: 隐私门禁
     runs-on: ubuntu-latest

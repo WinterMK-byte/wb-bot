@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/WinterMK-byte/wb-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/WinterMK-byte/wb-bot/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/WinterMK-byte/wb-bot?color=blue)](https://github.com/WinterMK-byte/wb-bot/releases)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 ![Dependencies: none](https://img.shields.io/badge/dependencies-none-brightgreen.svg)
 
@@ -44,6 +45,20 @@ their own "authoritative" copy.
 
 ## Quick start
 
+Two ways: **pip** if you just want to use it; **clone** if you want the source.
+
+### Option 1 · pip (recommended)
+
+```bash
+pip install wb-bot              # core has zero dependencies
+pip install "wb-bot[mcp]"       # only if you need the MCP server
+
+wbb --bus ./00-bus.md append "alice|architect|Split T01/T02, assigned to bob|done|tasks/T01.md|bob"
+wbb --bus ./00-bus.md verify
+```
+
+### Option 2 · from the repo (no install)
+
 ```bash
 git clone https://github.com/WinterMK-byte/wb-bot.git
 cd wb-bot
@@ -57,7 +72,7 @@ python -m wbb.cli --bus ./00-bus.md verify
 python -m wbb.cli --bus ./00-bus.md read --since 0
 ```
 
-Built-in self-test (19 checks: concurrency, duplicate IDs, row order, archive, locks):
+Built-in self-test (20 checks: concurrency, duplicate IDs, row order, **table continuity**, archive, locks):
 
 ```bash
 python -m wbb.bus          # or: python -m wbb.cli selftest
@@ -156,7 +171,40 @@ every entry maps to a real incident, with the scene, the root cause, and
 | [`docs/03-seats.md`](docs/03-seats.md) | Seat design: boundary rules and delegation terms |
 | [`docs/04-bus-protocol.md`](docs/04-bus-protocol.md) | Bus protocol: columns, IDs, locks, verification |
 | [`docs/05-injection.md`](docs/05-injection.md) | Injection points: which locations count as "notified" |
+| [`docs/06-heterogeneous-agents.md`](docs/06-heterogeneous-agents.md) | Collaboration across runtimes (single bus + watermark) |
+| [`docs/07-seat-governance.md`](docs/07-seat-governance.md) | Seat governance: boundaries, delegation, conditional removal of the middle layer |
+| [`docs/08-routing.md`](docs/08-routing.md) | Routing: utterance → owner → entry point |
+| [`docs/09-multi-scheduler.md`](docs/09-multi-scheduler.md) | Multiple scheduler sources: four dialects, one discipline |
+| [`docs/10-resource-lease.md`](docs/10-resource-lease.md) | Cross-process resource leases (platform-bound case) |
+| [`docs/11-usage.md`](docs/11-usage.md) | **How to use** — four scenarios; pick one and copy |
+| [`docs/12-handoff-discipline.md`](docs/12-handoff-discipline.md) | ★ **Handoff discipline** — why assignments get lost, and how to stop it |
+| [`docs/13-auto-wake.md`](docs/13-auto-wake.md) | ★ **One-line dispatch & auto-wake** — with measured data (~30 s delay), trade-offs |
+| [`docs/lessons.md`](docs/lessons.md) | ★ **Lessons from real incidents** (the point of this project) |
+| [`docs/README.md`](docs/README.md) | Doc index (ordered by "what should I read first") |
 | [`skill/SKILL.md`](skill/SKILL.md) | Operator guide for agents (installable as a Skill) |
+| [`CHANGELOG.md`](CHANGELOG.md) | Changelog (v0.1 → v0.3.1) |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to file issues / PRs |
+
+> Docs are in **Chinese** (they were grown from a real setup).
+> This README is the English front door; for depth, use a translator —
+> or open an issue and ask.
+
+---
+
+## v0.2 · Cross-runtime governance
+
+Beyond "several sessions in one runtime", v0.2 covers **several different agent runtimes**:
+how to split capability boundaries, who owns what, the five kinds of handoff artifacts,
+how to keep scheduled tasks from colliding across four scheduler sources,
+and how multiple processes share one scarce resource without stepping on each other.
+
+## v0.3 · Handoff
+
+Two additions that came out of a real incident
+(an assignment that never landed, and nobody noticed — for **six days**):
+
+- **`docs/12` Handoff discipline** — dual-channel delivery, receipt obligation, three failure modes
+- **`docs/13` Auto-wake** — make a *closed* session actually start working (with measured delay)
 
 ---
 
