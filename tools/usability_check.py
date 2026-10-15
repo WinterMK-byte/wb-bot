@@ -80,20 +80,30 @@ for mod, want in [("wbb.bus", "0 项失败"), ("wbb.lease", "0 项失败")]:
     if not ok:
         fails.append(mod)
 
-# ⑧ MCP（装了 mcp 包才验，没装则跳过 —— 不算失败）
-code = ("import sys,os; sys.path.insert(0,'.'); os.environ['WBB_BUS']=r'%s'; "
-        "import mcp_server as M; "
-        "print('TOOLS=' + ','.join(t.name for t in M.mcp._tool_manager.list_tools()))") % BUS
-r = subprocess.run([PY, "-X", "utf8", "-c", code], cwd=ROOT,
-                   capture_output=True, text=True, encoding="utf-8", errors="replace")
-line = [l for l in (r.stdout or "").splitlines() if l.startswith("TOOLS=")]
-if line:
-    print("  ✅ ⑧ MCP server 注册 %d 个工具" % len(line[0][6:].split(",")))
-elif "No module named 'mcp'" in (r.stderr or ""):
+# ⑧ MCP（装了 mcp 包才验，没装则跳过）
+#
+# ⚠️ 别用「stderr 里有没有某句话」当判据 —— mcp_server.py 在缺包时是
+#    **自己 raise SystemExit(3)**，stderr 是它自己的文案；
+#    拿 "No module named 'mcp'" 去匹配必然落空 ⇒ CI 上假红（v0.2.2 踩过）。
+#    正确做法：**先探测包在不在**。
+probe = subprocess.run(
+    [PY, "-c", "import importlib.util,sys; "
+               "sys.exit(0 if importlib.util.find_spec('mcp') else 1)"],
+    capture_output=True)
+if probe.returncode != 0:
     print("  ⏭  ⑧ MCP server        跳过（未装 mcp 包）")
 else:
-    print("  ❌ ⑧ MCP server        %s" % (r.stderr or "")[:80])
-    fails.append("MCP")
+    code = ("import sys,os; sys.path.insert(0,'.'); os.environ['WBB_BUS']=r'%s'; "
+            "import mcp_server as M; "
+            "print('TOOLS=' + ','.join(t.name for t in M.mcp._tool_manager.list_tools()))") % BUS
+    r = subprocess.run([PY, "-X", "utf8", "-c", code], cwd=ROOT,
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    line = [l for l in (r.stdout or "").splitlines() if l.startswith("TOOLS=")]
+    if line:
+        print("  ✅ ⑧ MCP server 注册 %d 个工具" % len(line[0][6:].split(",")))
+    else:
+        print("  ❌ ⑧ MCP server        %s" % (r.stderr or "")[:80])
+        fails.append("MCP")
 
 print()
 print("=" * 70)
