@@ -1,0 +1,27 @@
+# 依赖更新 —— 本仓库核心零依赖，所以这里只管两样东西。
+#
+# 为什么还要开：**无人看管的 pin 会悄悄烂掉**。
+#   · actions/checkout@v4 这类标签会随 Node 运行时升级而失效；
+#   · 可选的 mcp 依赖有版本区间。
+#   这两样都不会因为我们没动代码就保持不变 —— 定期开 PR 比"某天 CI 突然全红"便宜得多。
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+
+  # ★ 只更新可选依赖 mcp；核心零依赖是刻意设计，不引入其它依赖。
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"

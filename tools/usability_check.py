@@ -162,6 +162,23 @@ else:
         print("  ❌ ⑨ MCP server        %s" % (r.stderr or "")[:80])
         fails.append("MCP")
 
+# ⑩ 仓库一致性（版本三处一致 / 文档链接可达）
+#
+# 为什么放进"开箱实测"：新人拿到仓库**第一眼**就是 README 与文档 ——
+# 这两样不对，后面的机制再对也没用。且它们是**不报错**的失效：
+# 链接 404 没人知道，版本号不一致只有用户会撞上。
+for args, label in ((["tools/version_check.py", "--quiet"], "⑩ 版本三处一致"),
+                    (["tools/link_check.py", "--quiet"], "⑩ 文档链接可达 + 索引完整")):
+    r = subprocess.run([PY, "-X", "utf8"] + args, cwd=ROOT,
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    ok = r.returncode == 0
+    detail = "" if ok else ((r.stdout or "") + (r.stderr or "")).strip().splitlines()
+    print("  %s %s" % ("✅" if ok else "❌", label))
+    if not ok:
+        for line in detail[:6]:
+            print("       %s" % line)
+        fails.append(label)
+
 print()
 print("=" * 70)
 print("结果：%s" % ("✅ 全部通过 —— 开箱可用" if not fails else "❌ 失败项: %s" % fails))

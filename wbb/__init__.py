@@ -18,7 +18,7 @@ from .lease import (EXIT_CONFLICT, EXIT_DEGRADED, EXIT_INSUFFICIENT, EXIT_OK,
 from .migrate import (EXIT_NEEDS_WORK, SECTION_TITLES, audit, build_handoff,
                       render)
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __all__ = [
     "Bus", "BusError", "LockTimeout", "SelfCheckFailed",
     "LeaseManager", "Probe",

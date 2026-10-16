@@ -40,6 +40,7 @@ python -m wbb.cli --bus ./00-bus.md verify
 - [教训库（本项目的重点）](#教训库本项目的重点)
 - [v0.2 · 跨 Agent 治理层](#v02--跨-agent-治理层)
 - [文档](#文档)
+- [参与进来](#参与进来)
 - [免责声明](#免责声明)
 
 ---
@@ -151,7 +152,7 @@ export WBB_BUS=/abs/path/to/00-bus.md      # Windows: setx WBB_BUS ...
 `next_id()` 取 `max(id) + 1`，而且这个计算与写入在**同一把原子锁**内完成。
 
 > 任何"先读 ID，再写文件"的分步实现，在并发下都会撞号。
-> 这不是理论 —— 见 [`lessons/01-id-collision.md`](docs/lessons/01-id-collision.md)。
+> 这不是理论 —— 见 [`docs/lessons.md`](docs/lessons.md) 的 **§01 · ID 撞号：分步读写的窗口期**。
 
 ### ③ 写后自检，不合格自动回滚
 
@@ -164,8 +165,8 @@ export WBB_BUS=/abs/path/to/00-bus.md      # Windows: setx WBB_BUS ...
 用"最后一个闭合行"当表尾，会把新条目插进**表格中段**。
 
 > 更狠的是：这个 bug 的根因是**插入锚被条目正文劫持** ——
-> 见 [`lessons/02-insert-anchor-hijack.md`](docs/lessons/02-insert-anchor-hijack.md)。
-> 那一篇值得一读，因为它是一个"修理工具时给工具自己埋雷"的典型案例。
+> 见 [`docs/lessons.md`](docs/lessons.md) 的 **§02 · 插入锚被正文劫持**。
+> 那一条值得一读，因为它是一个"修理工具时给工具自己埋雷"的典型案例。
 
 ---
 
@@ -309,11 +310,13 @@ python -m wbb.migrate
 | [`docs/12-handoff-discipline.md`](docs/12-handoff-discipline.md) | **交接纪律** —— 派单为什么会丢：**投递双通道 / 回执义务 / 三种失败模式** |
 | [`docs/13-auto-wake.md`](docs/13-auto-wake.md) | **一句话派单与自动唤醒** —— 含**实测数据**（30 秒延迟）、两条路、代价边界 |
 | ★ [`docs/14-runtime-migration.md`](docs/14-runtime-migration.md) | **运行时迁移** —— 执行方是**耗材**：接续要带什么（身份 / 在办事实 / 未闭口）、搬完要查什么（写死路径的**静默失效**） |
+| ★ [`docs/15-adopting.md`](docs/15-adopting.md) | **接入指南** —— 三种接入深度怎么选 · 哪些参数**必须你自己定** · **「接了才算接上」的三个判据** · 会白干的反模式 |
 | [`docs/lessons.md`](docs/lessons.md) | **10 条真实事故教训**（本项目重点） |
 | [`skill/SKILL.md`](skill/SKILL.md) | 给 Agent 用的操作指引（可直接装成 Skill） |
 | [`docs/README.md`](docs/README.md) | **文档索引**（按「该先读哪篇」排） |
-| [`CHANGELOG.md`](CHANGELOG.md) | **更新日志**（v0.1 → v0.4.0） |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | 怎么提 issue / PR |
+| [`CHANGELOG.md`](CHANGELOG.md) | **更新日志**（v0.1 → v0.5.0） |
+| [`ROADMAP.md`](ROADMAP.md) | **路线图** —— 已交付 / 正在做 / **明确不做**，以及**怎么影响它** |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | 怎么提 issue / PR（★ 最欢迎**真实事故**） |
 
 ---
 
@@ -386,6 +389,66 @@ python tools/privacy_check.py
 > ```
 
 本项目自身已通过该项检查（**零命中**）。
+
+---
+
+## 参与进来
+
+**这个项目最值钱的输入不是代码，是「真实事故」。** 你在多 Agent 协作里踩过的坑，
+只要写出来，就会变成 `docs/lessons.md` 里的下一条 —— 而**机制可以被抄走，教训不能**。
+
+### 三扇门（都开了表单，按价值排）
+
+| 走哪扇 | 什么时候用 | 入口 |
+|---|---|---|
+| ★ **真实事故** | 你在真实协作里撞出了坑 —— **最欢迎**，填完基本就是一条教训草稿 | [new issue](https://github.com/WinterMK-byte/wb-bot/issues/new/choose) → 选「真实事故」 |
+| **缺陷** | 它没按文档说的那样工作，你能给出最小复现 | 同上 → 选「缺陷」 |
+| **想法 / 提问** | 想加能力、想问「我这情况该怎么用」 | [Discussions](https://github.com/WinterMK-byte/wb-bot/discussions) |
+
+### ★ 这个项目是怎么「越用越成熟」的
+
+它不靠"规划得早"，靠一条**闭环**。每个环节都可以被一个具体动作推动：
+
+```
+   用起来（接进你的仓库）
+        ↓
+   撞到坑  ←── 这一步无法被计划，只能被遇到
+        ↓
+   填「真实事故」表单（= 一条教训草稿）
+        ↓
+   ★ 加一个自测项，证明它抓得到错   ←── 没有这一步，等于等着它再犯
+        ↓
+   进 CI，长期守着（还有版本 / 文档 / 隐私三道门禁）
+        ↓
+   下一个人用的时候，这个坑已经被封住了
+```
+
+所以**「我卡在哪儿了」本身就是一条需求** —— 它证明真实用户真的会走到那儿。
+文档改进、门槛降低、报错更清楚的诉求，都按需求计。
+
+### 提交前要跑的（本地）
+
+```bash
+python -m wbb.bus                 # 总线自测（20 项）
+python -m wbb.lease               # 租约自测（15 项）
+python -m wbb.migrate             # 迁移自测（23 项）
+python tools/usability_check.py   # 开箱实测（模拟新人拿到仓库）
+python tools/version_check.py     # ★ 版本三处一致
+python tools/link_check.py        # ★ 相对链接可达 + docs 索引完整
+python tools/privacy_check.py     # 脱敏门禁（零命中才算过）
+```
+
+细节见 [`CONTRIBUTING.md`](CONTRIBUTING.md) ｜ 路线图见 [`ROADMAP.md`](ROADMAP.md)。
+
+### 新人从哪儿下手
+
+- **不用读完全部文档** —— 从 [`docs/README.md`](docs/README.md) 的「先读这三篇」开始（约 10 分钟）。
+- **接入**看 [`docs/15-adopting.md`](docs/15-adopting.md)（先选深度，别一上来全量）。
+- **只提文档改进也完全算贡献** —— 尤其是「哪句话让我误解了」。
+- 仓库开着 Discussions，**问之前不用先把文档读完**。
+
+> 本项目**是个人维护的社区项目，不承诺时间表**（原因见 [ROADMAP](ROADMAP.md) 开头），
+> 但每一个 issue 都会有人看。
 
 ---
 

@@ -1,0 +1,69 @@
+name: 缺陷
+description: 它没按文档说的那样工作 —— 请带上最小复现
+title: "[缺陷] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        说清「**怎么复现**」比说「它坏了」有用得多 —— 后者我们得来回问三轮。
+        如果这个缺陷是在真实协作里撞出来的（而不只是跑自测撞出来的），**请改用「真实事故」那张表**，那张更有价值。
+  - type: textarea
+    id: scene
+    attributes:
+      label: 你的场景
+      description: 几个 agent / 什么运行时 / 多大的量（几条记录 / 几个进程）。场景决定它是不是"只在并发下出现"。
+      placeholder: 2 个 Agent 共用一条总线，各自 1 个进程；总线约 400 条记录。
+    validations:
+      required: true
+  - type: textarea
+    id: expect
+    attributes:
+      label: 期望
+      description: 你按哪篇文档 / 哪条命令的说明操作，期望得到什么？给文档名或链接最好。
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际
+      description: 实际发生了什么？**完整粘贴报错与输出**（含退出码），不要只描述。
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 最小复现
+      description: 能贴命令就贴命令；能贴一段 20 行以内的脚本更好。**越短越好。**
+      render: shell
+      placeholder: |
+        python -m wbb.cli --bus ./00-bus.md append "a|b|c|done|-|-"
+        python -m wbb.cli --bus ./00-bus.md verify
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 跑 `wbb --version`，或直接说 commit 短哈希
+      placeholder: "0.5.0 / e01f31a"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: 环境
+      description: 操作系统 / Python 版本 / 文件系统（**CJK 路径相关的缺陷尤其要说明**）
+      placeholder: "Windows 11 · Python 3.13.12 · NTFS · 路径含中文"
+    validations:
+      required: true
+  - type: checkboxes
+    id: precheck
+    attributes:
+      label: 提交前自查
+      options:
+        - label: 我已跑过 CONTRIBUTING 里那四条自测，并粘贴了输出
+          required: false
+        - label: 内容里没有真实的绝对路径 / 邮箱 / 账号 / 内部平台名
+          required: true

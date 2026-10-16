@@ -25,7 +25,9 @@ jobs:
 
       - name: 语法检查
         run: |
-          python -m py_compile wbb/bus.py wbb/lease.py wbb/migrate.py wbb/cli.py mcp_server.py tools/privacy_check.py
+          python -m py_compile wbb/bus.py wbb/lease.py wbb/migrate.py wbb/cli.py mcp_server.py
+          python -m py_compile tools/privacy_check.py tools/usability_check.py tools/check_mcp.py
+          python -m py_compile tools/version_check.py tools/link_check.py tools/changelog_extract.py
 
       - name: 总线核心自测（20 项：并发 / 重号 / 行序 / 表格连续性 / 归档 / 锁）
         run: python -m wbb.bus
@@ -117,6 +119,45 @@ jobs:
       - name: 开箱可用性（Windows）
         shell: bash
         run: python tools/usability_check.py
+
+      # ★ 顺手把新的门禁也在 GBK 控制台下跑一遍 ——
+      #   它们是"给人看的输出"，中文乱码就等于没输出（v0.3.3 就是这么被 CI 抓出来的）
+      - name: ★ 仓库门禁（Windows · GBK 控制台）
+        shell: bash
+        run: |
+          python tools/version_check.py
+          python tools/link_check.py
+
+  gates:
+    name: 仓库一致性（版本 / 文档 / 变更日志）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # 这三道门禁的意义：把"老成员记得、新人不知道"的纪律变成机械可查的东西。
+      # 每个人（也包括我们自己）跳过一步，都会在这里现形。
+      - name: 门禁工具自测（先证明它们抓得到错）
+        run: |
+          python tools/version_check.py --selftest
+          python tools/link_check.py --selftest
+          python tools/changelog_extract.py --selftest
+
+      - name: 版本三处一致
+        run: python tools/version_check.py
+
+      - name: 相对链接可达 + docs 索引完整
+        run: python tools/link_check.py
+
+      # 发版用的抽段器 —— 日常也验一次，避免它到发版那天才发现坏了
+      - name: CHANGELOG 可抽段（发版流程依赖它）
+        run: |
+          for v in $(python tools/changelog_extract.py --list); do
+            python tools/changelog_extract.py "$v" > /dev/null
+            echo "  ✅ 可抽出 [$v]"
+          done
 
   privacy:
     name: 隐私门禁

@@ -1,0 +1,79 @@
+# ★ 本仓库最欢迎的一张表 —— 填完基本就是 docs/lessons.md 里的一条。
+#
+# 设计要点：字段名与 docs/lessons.md 的条目结构**逐字对齐**
+#（症状 / 现场 / 根因 / 判据 / 可复用规则），这样维护者可以直接搬运，
+#  不需要二次加工 —— 「提交即草稿」是这条流水线能长期转下去的前提。
+name: 真实事故（最欢迎）
+description: 你在多 Agent 协作里踩过的坑 —— 这比一个 PR 更有价值
+title: "[事故] "
+labels: ["incident"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        本项目最不易被抄走的部分是 [教训库](https://github.com/WinterMK-byte/wb-bot/blob/main/docs/lessons.md) —— 一条条都对应**真实事故**。
+
+        这张表就是**一条教训的草稿**：字段与 `docs/lessons.md` 的条目结构对齐，
+        填完维护者可以直接搬进去。**修法不需要完美，现场真实就够了。**
+
+        > 「不报错但不对」比「崩了」更值得收 —— 崩溃有人管，静默失准没人知道。
+  - type: textarea
+    id: symptom
+    attributes:
+      label: 症状
+      description: 现象是什么？**有没有报错？**（如果它"看起来正常"，请特别说明 —— 那是最贵的一类）
+      placeholder: 总线上出现两条 ID 相同的记录。不报错，只是某天统计时发现"条数对不上"。
+    validations:
+      required: true
+  - type: textarea
+    id: scene
+    attributes:
+      label: 现场
+      description: 几个 agent / 什么运行时 / 谁和谁**同时**在干什么。有最小复现最好，没有就描述时序。
+      placeholder: 两个会话几乎同时往同一个文件追加……
+    validations:
+      required: true
+  - type: textarea
+    id: rootcause
+    attributes:
+      label: 你判断的根因
+      description: 猜也行 —— 写清「为什么这么猜」。判断错也有价值，纠偏过程本身就是一条教训。
+    validations:
+      required: true
+  - type: textarea
+    id: criterion
+    attributes:
+      label: 判据最后改成了什么（或你认为该改成什么）
+      description: ★ 教训库最有价值的一段 —— 重点不是「我修好了」，而是「**以后靠什么判它有没有再犯**」。
+    validations:
+      required: false
+  - type: textarea
+    id: cost
+    attributes:
+      label: 代价
+      description: 它让你损失了什么？（白干的工时 / 被瞒了几天 / 数据对不上 / 某个 Agent 半年没收到更新）
+    validations:
+      required: false
+  - type: input
+    id: env
+    attributes:
+      label: 环境
+      description: 操作系统 / Python 版本 / 用到了哪些部分
+      placeholder: "Windows 11 · Python 3.13 · 总线 + 迁移"
+    validations:
+      required: false
+  - type: checkboxes
+    id: publishing
+    attributes:
+      label: 收录许可
+      description: 教训库是公开文档。请确认这段内容可以**脱敏后**公开收录。
+      options:
+        - label: 同意脱敏后收录进 `docs/lessons.md`（默认勾选，不愿意可取消 —— 那这条就只留在 issue 里）
+          required: false
+  - type: checkboxes
+    id: precheck
+    attributes:
+      label: 提交前自查
+      options:
+        - label: 内容里没有真实的绝对路径 / 邮箱 / 账号 / 内部平台名（本项目有隐私门禁，混进去会 CI 失败）
+          required: true

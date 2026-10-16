@@ -180,11 +180,13 @@ every entry maps to a real incident, with the scene, the root cause, and
 | [`docs/12-handoff-discipline.md`](docs/12-handoff-discipline.md) | ★ **Handoff discipline** — why assignments get lost, and how to stop it |
 | [`docs/13-auto-wake.md`](docs/13-auto-wake.md) | ★ **One-line dispatch & auto-wake** — with measured data (~30 s delay), trade-offs |
 | ★ [`docs/14-runtime-migration.md`](docs/14-runtime-migration.md) | **Runtime migration** — sessions get rebuilt; what a handoff must carry, and what to audit afterwards |
+| ★ [`docs/15-adopting.md`](docs/15-adopting.md) | **Adoption guide** — pick one of three depths; **which parameters only you can decide**; the three tests for "it's actually wired up"; anti-patterns |
 | [`docs/lessons.md`](docs/lessons.md) | ★ **Lessons from real incidents** (the point of this project) |
 | [`docs/README.md`](docs/README.md) | Doc index (ordered by "what should I read first") |
 | [`skill/SKILL.md`](skill/SKILL.md) | Operator guide for agents (installable as a Skill) |
-| [`CHANGELOG.md`](CHANGELOG.md) | Changelog (v0.1 → v0.4.0) |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to file issues / PRs |
+| [`CHANGELOG.md`](CHANGELOG.md) | Changelog (v0.1 → v0.5.0) |
+| [`ROADMAP.md`](ROADMAP.md) | **Roadmap** — shipped / in progress / **explicitly out of scope**, and how to influence it |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to file issues / PRs (★ **real incidents** most welcome) |
 
 > Docs are in **Chinese** (they were grown from a real setup).
 > This README is the English front door; for depth, use a translator —
@@ -230,6 +232,58 @@ python -m wbb.cli migrate audit  --root . --old <old-path> --new <new-path>
 > **Why this needs a tool, not a habit**: a hard-coded path that survives a move produces a
 > **silent** failure — reading a missing file usually does not throw, it returns empty, and empty
 > gets read as "nothing to do today". That is more dangerous than a crash, because nobody notices.
+
+---
+
+## Getting involved
+
+**The most valuable input to this project is not code — it is a "real incident".**
+If you hit a wall coordinating multiple agents, write it down: it becomes the next entry in
+`docs/lessons.md`. **Mechanisms can be copied; lessons cannot.**
+
+| Where | When | How |
+|---|---|---|
+| ★ **Real incident** | You hit a wall in a *real* setup — **most welcome**; the form is basically a lesson draft | [new issue](https://github.com/WinterMK-byte/wb-bot/issues/new/choose) → pick the incident form |
+| **Bug** | It doesn't do what the docs say, and you can give a minimal reproduction | same → pick the bug form |
+| **Idea / question** | You want a capability, or you're asking "how would I use this here?" | [Discussions](https://github.com/WinterMK-byte/wb-bot/discussions) |
+
+### How this project matures *through use*
+
+It doesn't rely on planning ahead. It relies on one loop — every step is driven by a concrete action:
+
+```
+   actually use it (wire it into your repo)
+        ↓
+   hit a wall   ←── this step cannot be planned; it can only be encountered
+        ↓
+   file the "real incident" form (= a lesson draft)
+        ↓
+   ★ add a self-test proving the check catches it   ←── skip this and it just happens again
+        ↓
+   it lives in CI forever (plus version / docs / privacy gates)
+        ↓
+   the next person can't fall into that hole
+```
+
+So **"where did I get stuck?" is itself a requirement** — it proves a real user actually walks
+that path. Doc improvements, lower barriers, clearer errors: all count as needs.
+
+Run these before opening a PR:
+
+```bash
+python -m wbb.bus                 # bus self-test (20)
+python -m wbb.lease               # lease self-test (15)
+python -m wbb.migrate             # migration self-test (23)
+python tools/usability_check.py   # out-of-the-box check (simulates a newcomer cloning the repo)
+python tools/version_check.py     # ★ version must match in three places
+python tools/link_check.py        # ★ relative links resolve + docs are all indexed
+python tools/privacy_check.py     # sanitization gate (zero hits to pass)
+```
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`ROADMAP.md`](ROADMAP.md).
+
+> This is a **personally maintained community project with no promised timeline**
+> (why: see the top of [ROADMAP](ROADMAP.md)) — but every issue gets read.
 
 ---
 

@@ -1,0 +1,52 @@
+name: 想法 / 提案
+description: 你想要什么能力，或者你觉得哪条规矩该改
+title: "[想法] "
+labels: ["idea"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        先说一句：**本项目的"不做"清单是刻意的**（见 [README](https://github.com/WinterMK-byte/wb-bot#本项目不做什么)，以及 [ROADMAP](https://github.com/WinterMK-byte/wb-bot/blob/main/ROADMAP.md)）。
+        提案最容易被接受的样子是：**它解决的是纪律问题，而不是加一层抽象。**
+
+        一个很有效的写法：**先描述你踩过的坑**，再说你想要的东西 ——
+        坑是需求，方案只是猜想之一。
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你想解决什么问题
+      description: 描述**问题本身**，不要一上来就描述方案。最好带上你现在的做法为什么不够用。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 你设想的做法（可选）
+      description: 有想法就写；没有也没关系 —— 问题说清楚，方案可以一起讨论。
+    validations:
+      required: false
+  - type: textarea
+    id: workaround
+    attributes:
+      label: 你现在怎么绕过它
+      description: 现有的绕过办法很有价值 —— 它说明这个问题值不值得进内核。
+    validations:
+      required: false
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: 边界自查（本项目刻意保持薄）
+      options:
+        - label: 这个提案不需要引入第三方依赖（核心零依赖是刻意的）
+          required: false
+        - label: 这个提案不是"再包一层框架"（本项目不调度模型 / 不管上下文 / 不管工具权限）
+          required: false
+        - label: 我愿意为它提 PR
+          required: false
+  - type: checkboxes
+    id: precheck
+    attributes:
+      label: 提交前自查
+      options:
+        - label: 我搜过已有 issue / Discussions，不是重复提问
+          required: true

@@ -8,6 +8,7 @@ privacy_check.py —— 发布前的脱敏自查工具
     python tools/privacy_check.py                  # 扫本仓库
     python tools/privacy_check.py --root <目录>
     python tools/privacy_check.py --extra-words 私有词表.txt
+    python tools/privacy_check.py --selftest       # 自测判据（5 个用例）
 
 为什么要有这个工具
 ------------------
@@ -80,6 +81,16 @@ SELF_BASENAME = os.path.basename(os.path.abspath(__file__))
 ZW_CHARS = {"\u200b": "零宽空格", "\u200c": "零宽非连接", "\u200d": "零宽连接",
             "\ufeff": "BOM", "\u2028": "行分隔", "\u2029": "段分隔", "\u00a0": "不换行空格"}
 
+# ★ 工作流里的 `${{ secrets.TOKEN }}` 是**引用**，不是字面量 —— 它恰恰是"没有硬编码密钥"的证据。
+#   不剥掉它，`secret` 这个词就会把每一份用到 CI 密钥的 workflow 都判成泄露。
+#   本项目教训 06：判据太严 = 天天假红；而假红的下场是所有人都学会忽略这份报告。
+#   ⇒ 匹配前先把表达式段去掉。其它内容照常扫，真字面量一个都跑不掉。
+RE_TEMPLATE_EXPR = re.compile(r"\$\{\{[^}]*\}\}")
+
+
+def _strip_expr(text: str) -> str:
+    return RE_TEMPLATE_EXPR.sub(" ", text)
+
 SUSPECT_EXT = {".exe", ".dll", ".bat", ".cmd", ".ps1", ".vbs", ".lnk", ".db",
                ".sqlite", ".zip", ".7z", ".rar", ".log", ".tmp", ".bak",
                ".pem", ".key", ".env", ".p12", ".pfx"}
@@ -111,13 +122,69 @@ def load_extra(root: str, extra: str | None):
     return words
 
 
+def _selftest() -> int:
+    """★ 反向用例优先：先证明它**抓得到**，再证明它**不误抓**。
+
+    起因是一处假红：`release.yml` 里的 `${{ secrets.GITHUB_TOKEN }}` 被
+    `secret` 这个词判成了"泄露的密钥" —— 而它恰恰是"没硬编码密钥"的证据。
+    修判据必须带自测，否则下次改回来没人知道（本项目硬规矩）。
+    """
+    import shutil
+    import subprocess
+    import tempfile
+
+    tmp = os.path.join(tempfile.gettempdir(), "wbb-privacy-selftest")
+    fails: list[str] = []
+
+    def write(name: str, text: str):
+        p = os.path.join(tmp, name)
+        with open(p, "w", encoding="utf-8") as f:
+            f.write(text)
+
+    def run() -> int:
+        return subprocess.run(
+            [sys.executable, "-X", "utf8", os.path.abspath(__file__),
+             "--root", tmp, "--quiet"], capture_output=True).returncode
+
+    cases = [
+        ("工作流模板表达式不算泄露", 0,
+         [("wf.yml", "env:\n  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}\n"
+                     "    used: ${{ secrets.MY_API_KEY }}\n")]),
+        ("真·密钥字面量仍要拦", 1, [("cfg.py", 'password = "hunter2-leaked"\n')]),
+        ("真实绝对路径仍要拦", 1, [("note.md", "数据在 C:\\Users\\zhangsan\\data\n")]),
+        ("示例占位路径不误判", 0, [("doc.md", "示例：C:\\Users\\<用户名>\\data\n")]),
+        ("裸出现 'secret' 仍要拦（不是表达式）", 1, [("x.md", "secret: abcdef123\n")]),
+    ]
+
+    print("privacy_check 自测")
+    for name, want, files in cases:
+        shutil.rmtree(tmp, ignore_errors=True)
+        os.makedirs(tmp)
+        for fn, text in files:
+            write(fn, text)
+        got = run()
+        ok = got == want
+        print("  %s %-34s 期望退出码 %d，实际 %d" % ("✅" if ok else "❌", name, want, got))
+        if not ok:
+            fails.append(name)
+
+    shutil.rmtree(tmp, ignore_errors=True)
+    print("结果：%s" % ("✅ 全过" if not fails else "❌ 失败 %s" % fails))
+    return 1 if fails else 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="发布前脱敏自查")
     ap.add_argument("--root", default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                     help="要扫描的目录（默认本仓库根）")
     ap.add_argument("--extra-words", help="额外词表文件（一行一个词，# 开头为注释）")
     ap.add_argument("--quiet", action="store_true", help="只输出结论")
+    ap.add_argument("--selftest", action="store_true",
+                    help="自测判据（证明既抓得到真泄露，也不误抓模板语法）")
     a = ap.parse_args()
+
+    if a.selftest:
+        return _selftest()
 
     root = os.path.abspath(a.root)
     files = sorted(walk(root))
@@ -149,12 +216,14 @@ def main() -> int:
             txt = open(p, encoding="utf-8").read()
         except (UnicodeDecodeError, OSError):
             continue
+        # 只把**模板表达式段**剥掉；其余内容原样扫（见 RE_TEMPLATE_EXPR 的说明）
+        scan = _strip_expr(txt) if "${" in txt else txt
         for cat, words in kw.items():
             for w in words:
-                if w and w in txt:
+                if w and w in scan:
                     n += 1
-                    lines = [i for i, l in enumerate(txt.splitlines(), 1) if w in l][:2]
-                    H("关键词", "%s 含 '%s' ×%d 行%s" % (rel, w, txt.count(w), lines))
+                    lines = [i for i, l in enumerate(scan.splitlines(), 1) if w in l][:2]
+                    H("关键词", "%s 含 '%s' ×%d 行%s" % (rel, w, scan.count(w), lines))
     if n == 0 and not a.quiet:
         print("  ✅ 零命中")
 

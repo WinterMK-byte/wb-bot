@@ -1,0 +1,17 @@
+# 给 issue 的入口做分流 —— issue 是「可复现的缺陷 + 真实事故」，不是客服。
+#
+# 为什么关掉空白 issue：
+#   本项目最需要的信息是「症状 / 现场 / 根因 / 判据」四段（见 docs/lessons.md 的格式）。
+#   空白 issue 里这三段通常都没有，于是每个都要来回问三轮才到能动手的程度。
+#   三张表单把「问什么」前置了 —— 填表的人写一次，比事后问三次省事。
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 提问 / 讨论（「我这情况该怎么用」走这里）
+    url: https://github.com/WinterMK-byte/wb-bot/discussions
+    about: 用法咨询、方案讨论、展示你的实践 —— 这类没有"可复现缺陷"的问题请走 Discussions。
+  - name: 📖 贡献指南（最欢迎真实事故）
+    url: https://github.com/WinterMK-byte/wb-bot/blob/main/CONTRIBUTING.md
+    about: 提交前要跑的四条自测、代码风格、以及"每个 bug 修复必须带自测项"的硬规矩。
+  - name: 🔒 报告安全问题 / 隐私泄露
+    url: https://github.com/WinterMK-byte/wb-bot/security/advisories/new
+    about: 请不要开公开 issue —— 走私密安全通告（含"仓库里混进了敏感信息"这类）。
