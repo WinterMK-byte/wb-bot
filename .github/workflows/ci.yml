@@ -18,7 +18,7 @@ jobs:
       matrix:
         python-version: ["3.9", "3.11", "3.13"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -70,7 +70,7 @@ jobs:
       PYTHONUTF8: "1"
       PYTHONIOENCODING: "utf-8"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -132,7 +132,7 @@ jobs:
     name: 仓库一致性（版本 / 文档 / 变更日志）
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -163,7 +163,7 @@ jobs:
     name: 隐私门禁
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -178,7 +178,7 @@ jobs:
     name: MCP server 可导入 + 注册 7 个工具
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
