@@ -260,6 +260,37 @@ python -m wbb.lease
 
 ---
 
+## v0.4 · 运行时迁移
+
+**执行方是耗材。** 任何长期会话的生命周期都**短于**它承担的工作 ——
+上下文塞满、模型换代、机器重装、进程崩了，任何一种都会让它「换个壳继续活着」。
+
+麻烦在于：换壳**不会报错**。新会话启动得很正常，只是从零开始 ——
+**忘了自己是谁**（开始越界），和**忘了在办什么**（同一件事做两遍，或没人接着做）。
+
+| 件 | 作用 |
+|---|---|
+| [`docs/14-runtime-migration.md`](docs/14-runtime-migration.md) | **迁移机制** —— 为什么执行方必然被重建 / 接续必须带三样 / 搬完必须查什么 |
+| [`wbb/migrate.py`](wbb/migrate.py) | 实现：`render` 生成接续文本 · `audit` 扫出还指着旧位置的引用（**23 项自测**） |
+| [`templates/06-identity-block.md`](templates/06-identity-block.md) | **身份块模板**（`render --identity` 的输入） |
+
+```bash
+# 迁移一条长期会话
+python -m wbb.cli migrate render --identity ./identity.md --bus ./00-bus.md --out ./接续文本.md
+# 搬完之后：跑到零命中，才算这次迁移收口
+python -m wbb.cli migrate audit --root . --old <旧位置> --new <新位置>
+# 参考实现自测
+python -m wbb.migrate
+```
+
+**两条最容易被跳过的纪律**：
+
+1. **接续文本要放进「启动时真的会读到」的位置。** 放对了位置但启动不读 = 没放。
+2. **迁移不做完 = 静默失效。** 路径写死后搬家，读一个不存在的文件通常不抛异常，
+   返回空 —— 空结果被当成「今天没事」。**它比崩溃危险，因为没人知道。**
+
+---
+
 ## 文档
 
 | 文件 | 内容 |
@@ -274,13 +305,14 @@ python -m wbb.lease
 | [`docs/08-routing.md`](docs/08-routing.md) | 路由层：口语 → 责任方 → 入口 |
 | [`docs/09-multi-scheduler.md`](docs/09-multi-scheduler.md) | 多调度源：四源口径 + 统一纪律 |
 | [`docs/10-resource-lease.md`](docs/10-resource-lease.md) | 跨进程资源租约（平台绑定案例） |
-| [`docs/11-usage.md`](docs/11-usage.md) | **怎么用（四种场景）** —— 最短上手 / 接进项目 / MCP / 资源租约 |
+| [`docs/11-usage.md`](docs/11-usage.md) | **怎么用（五种场景）** —— 最短上手 / 接进项目 / MCP / 资源租约 / 迁移 |
 | [`docs/12-handoff-discipline.md`](docs/12-handoff-discipline.md) | **交接纪律** —— 派单为什么会丢：**投递双通道 / 回执义务 / 三种失败模式** |
 | [`docs/13-auto-wake.md`](docs/13-auto-wake.md) | **一句话派单与自动唤醒** —— 含**实测数据**（30 秒延迟）、两条路、代价边界 |
+| ★ [`docs/14-runtime-migration.md`](docs/14-runtime-migration.md) | **运行时迁移** —— 执行方是**耗材**：接续要带什么（身份 / 在办事实 / 未闭口）、搬完要查什么（写死路径的**静默失效**） |
 | [`docs/lessons.md`](docs/lessons.md) | **10 条真实事故教训**（本项目重点） |
 | [`skill/SKILL.md`](skill/SKILL.md) | 给 Agent 用的操作指引（可直接装成 Skill） |
 | [`docs/README.md`](docs/README.md) | **文档索引**（按「该先读哪篇」排） |
-| [`CHANGELOG.md`](CHANGELOG.md) | **更新日志**（v0.1 → v0.3.1） |
+| [`CHANGELOG.md`](CHANGELOG.md) | **更新日志**（v0.1 → v0.4.0） |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | 怎么提 issue / PR |
 
 ---

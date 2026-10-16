@@ -25,13 +25,16 @@ jobs:
 
       - name: 语法检查
         run: |
-          python -m py_compile wbb/bus.py wbb/lease.py wbb/cli.py mcp_server.py tools/privacy_check.py
+          python -m py_compile wbb/bus.py wbb/lease.py wbb/migrate.py wbb/cli.py mcp_server.py tools/privacy_check.py
 
       - name: 总线核心自测（20 项：并发 / 重号 / 行序 / 表格连续性 / 归档 / 锁）
         run: python -m wbb.bus
 
       - name: 资源租约自测（15 项：双轨判定 + 降级轨 / 退出码 / 僵尸抢占 / 不足即停）
         run: python -m wbb.lease
+
+      - name: 运行时迁移自测（23 项：接续五节 / 未闭口筛选 / 审计退出码 / 跳过二进制与大文件 / CJK 路径）
+        run: python -m wbb.migrate
 
       - name: CLI 冒烟（append → verify → read → claim → view）
         run: |
@@ -43,6 +46,14 @@ jobs:
           python -m wbb.cli --bus "$WBB_BUS" claim "x.md|ci"
           python -m wbb.cli --bus "$WBB_BUS" release "x.md"
           python -m wbb.cli --bus "$WBB_BUS" view ci
+
+      - name: CLI 冒烟 · 迁移（render → audit）
+        run: |
+          D="$(mktemp -d)"
+          printf '# identity\n\n我是执行方。\n' > "$D/id.md"
+          python -m wbb.cli migrate render --bus "$WBB_BUS" --identity "$D/id.md" --out "$D/handoff.md"
+          test -s "$D/handoff.md"
+          python -m wbb.cli migrate audit --root "$D" --old "old-root" && echo "audit 零命中（预期）"
 
       - name: 开箱可用性（模拟「新人拿到仓库」的完整路径）
         run: python tools/usability_check.py
@@ -78,6 +89,7 @@ jobs:
         run: |
           python -m wbb.bus
           python -m wbb.lease
+          python -m wbb.migrate
 
       - name: ★ 在**中文路径**下跑完整流程
         shell: bash
@@ -91,6 +103,16 @@ jobs:
           python -X utf8 -m wbb.cli --bus "$B" claim "共享.md|ci"
           python -X utf8 -m wbb.cli --bus "$B" release "共享.md"
           python -X utf8 -m wbb.cli --bus "$B" status
+
+      - name: ★ 在**中文路径**下迁移（render + audit）
+        shell: bash
+        run: |
+          D="测试目录/中文 路径/子目录"
+          printf '# identity\n\n我是执行方。\n' > "$D/身份.md"
+          python -X utf8 -m wbb.cli migrate render --bus "$D/00-bus.md" \
+                 --identity "$D/身份.md" --out "$D/接续 文本.md"
+          test -s "$D/接续 文本.md"
+          python -X utf8 -m wbb.cli migrate audit --root "$D" --old "不存在的旧位置"
 
       - name: 开箱可用性（Windows）
         shell: bash

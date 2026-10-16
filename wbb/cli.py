@@ -18,6 +18,8 @@ MCP 各写一套逻辑，早晚会出现"用命令行写进去的行，MCP 读�
     python -m wbb.cli --bus ./00-bus.md archive --keep 200 [--go]
     python -m wbb.cli --bus ./00-bus.md view <关键词>
     python -m wbb.cli --bus ./00-bus.md status
+    python -m wbb.cli migrate render --identity id.md --bus ./00-bus.md --out handoff.md
+    python -m wbb.cli migrate audit --root . --old <旧位置> [--new <新位置>]
     python -m wbb.cli selftest
 """
 
@@ -31,6 +33,7 @@ from typing import List, Optional
 
 from . import __version__
 from .bus import Bus, LockTimeout, SelfCheckFailed, _safe_stdout
+from .migrate import DEFAULT_MAX_BYTES
 
 
 def _bus_from_args(a: argparse.Namespace) -> Bus:
@@ -89,6 +92,24 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("keyword", nargs="?", default="")
 
     sub.add_parser("status", help="总线概况")
+
+    p = sub.add_parser("migrate", help="运行时迁移：render 生成接续文本 / audit 扫旧位置引用")
+    p.add_argument("action", choices=("render", "audit"))
+    # ★ 这里**必须再声明一次** `--bus`：argparse 只在「属性尚未设置」时才写默认值，
+    #   所以放在子命令后面写也能生效，而不会把前面的值覆盖成 None。
+    #   （不放这里的话，`migrate render --bus X` 会直接报 unrecognized arguments）
+    p.add_argument("--bus", default=None, help="render：作为在办事实来源的总线文件")
+    p.add_argument("--identity", default="", help="身份块文件（原始 markdown，原样搬进接续文本）")
+    p.add_argument("--tail", type=int, default=20, help="取总线末尾 N 条作为在办事实")
+    p.add_argument("--title", default="接续文本")
+    p.add_argument("--out", default="", help="输出文件（缺省打到 stdout）")
+    p.add_argument("--root", default="", help="audit：要扫描的目录")
+    p.add_argument("--old", action="append", default=[], help="audit：旧位置片段（可多次）")
+    p.add_argument("--new", default="", help="audit：新位置片段（给替换建议）")
+    p.add_argument("--max-bytes", type=int, default=DEFAULT_MAX_BYTES,
+                   help="audit：超过这个大小的文件跳过")
+    p.add_argument("--quiet", action="store_true")
+
     sub.add_parser("selftest", help="跑内置自测")
 
     a = ap.parse_args(argv)
@@ -96,6 +117,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     if a.cmd == "selftest":
         from .bus import _selftest
         return _selftest()
+
+    # migrate 不依赖总线（--bus 只是它的**数据源之一**，可缺省）
+    if a.cmd == "migrate":
+        from . import migrate as _mig
+        if a.action == "render":
+            return _mig.render(
+                identity_path=a.identity,
+                bus_path=a.bus or os.environ.get("WBB_BUS") or "",
+                tail=a.tail, title=a.title, out_path=a.out, quiet=a.quiet,
+            )
+        return _mig.audit(root=a.root, olds=a.old, new=a.new,
+                          max_bytes=a.max_bytes, quiet=a.quiet)
 
     if not a.cmd:
         ap.print_help()

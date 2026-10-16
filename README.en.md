@@ -176,13 +176,14 @@ every entry maps to a real incident, with the scene, the root cause, and
 | [`docs/08-routing.md`](docs/08-routing.md) | Routing: utterance → owner → entry point |
 | [`docs/09-multi-scheduler.md`](docs/09-multi-scheduler.md) | Multiple scheduler sources: four dialects, one discipline |
 | [`docs/10-resource-lease.md`](docs/10-resource-lease.md) | Cross-process resource leases (platform-bound case) |
-| [`docs/11-usage.md`](docs/11-usage.md) | **How to use** — four scenarios; pick one and copy |
+| [`docs/11-usage.md`](docs/11-usage.md) | **How to use** — five scenarios; pick one and copy |
 | [`docs/12-handoff-discipline.md`](docs/12-handoff-discipline.md) | ★ **Handoff discipline** — why assignments get lost, and how to stop it |
 | [`docs/13-auto-wake.md`](docs/13-auto-wake.md) | ★ **One-line dispatch & auto-wake** — with measured data (~30 s delay), trade-offs |
+| ★ [`docs/14-runtime-migration.md`](docs/14-runtime-migration.md) | **Runtime migration** — sessions get rebuilt; what a handoff must carry, and what to audit afterwards |
 | [`docs/lessons.md`](docs/lessons.md) | ★ **Lessons from real incidents** (the point of this project) |
 | [`docs/README.md`](docs/README.md) | Doc index (ordered by "what should I read first") |
 | [`skill/SKILL.md`](skill/SKILL.md) | Operator guide for agents (installable as a Skill) |
-| [`CHANGELOG.md`](CHANGELOG.md) | Changelog (v0.1 → v0.3.1) |
+| [`CHANGELOG.md`](CHANGELOG.md) | Changelog (v0.1 → v0.4.0) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to file issues / PRs |
 
 > Docs are in **Chinese** (they were grown from a real setup).
@@ -205,6 +206,30 @@ Two additions that came out of a real incident
 
 - **`docs/12` Handoff discipline** — dual-channel delivery, receipt obligation, three failure modes
 - **`docs/13` Auto-wake** — make a *closed* session actually start working (with measured delay)
+
+## v0.4 · Runtime migration
+
+**Executors are consumables.** Any long-lived session has a lifecycle *shorter* than the work
+it carries — context fills up, the model generation turns over, the machine gets reinstalled,
+or the process just dies. When that happens the session **gets a new shell**.
+
+The trouble: getting a new shell **does not raise an error**. The new session starts up perfectly
+fine — it just starts from zero. It forgets **who it is** (and starts crossing boundaries) and
+**what it was in the middle of** (so work gets done twice, or by nobody).
+
+- **`wbb/migrate.py`** — runnable: `render` builds the handoff document, `audit` finds references
+  still pointing at the *old* location. Exit code `0` clean / `8` needs work. 23 self-tests.
+- **`docs/14` Runtime migration** — three things a handoff must carry; what to scan after moving
+- **`templates/06-identity-block.md`** — the identity block that `render --identity` consumes
+
+```bash
+python -m wbb.cli migrate render --identity ./identity.md --bus ./00-bus.md --out ./handoff.md
+python -m wbb.cli migrate audit  --root . --old <old-path> --new <new-path>
+```
+
+> **Why this needs a tool, not a habit**: a hard-coded path that survives a move produces a
+> **silent** failure — reading a missing file usually does not throw, it returns empty, and empty
+> gets read as "nothing to do today". That is more dangerous than a crash, because nobody notices.
 
 ---
 

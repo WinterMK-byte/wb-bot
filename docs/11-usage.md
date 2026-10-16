@@ -1,4 +1,4 @@
-# 11 · 怎么用（四种场景）
+# 11 · 怎么用（五种场景）
 
 > 前面十篇讲「**为什么这么设计**」；这一篇只讲「**怎么用**」。
 > 按你的情况挑一个场景 —— 全部命令都在本机实跑验证过。
@@ -148,6 +148,37 @@ finally:
 
 ---
 
+## 场景 E · 迁移一条长期会话（**换壳时不丢东西**）
+
+适合：**一条跑了很久的会话要被重建**（上下文塞满 / 换代 / 重装 / 崩了）。
+
+```bash
+# ① 先有身份块（没有就从模板拷一份改）
+cp templates/06-identity-block.md ./identity.md
+
+# ② 生成接续文本（身份 + 总线末尾 20 条 + 未闭口清单）
+python -m wbb.cli migrate render --identity ./identity.md --bus ./00-bus.md --out ./接续文本.md
+
+# ③ 把它放到新会话**启动时真的会读到**的位置（放对位子但启动不读 = 没放）
+# ④ 搬完之后：查到零命中，才算这次迁移收口
+python -m wbb.cli migrate audit --root . --old <旧位置片段> --new <新位置片段>
+```
+
+| 退出码 | 含义 |
+|---|---|
+| `0` | 零命中 —— 已经没有地方指着旧位置了 |
+| `8` | 有引用待处理 —— **还没迁移完** |
+
+**三条要点**（`docs/14` 详述）：
+
+1. **接续必须带三样** —— 身份块 / 在办事实 / **未闭口清单**（最后一样最容易丢）
+2. **生成物不手改** —— 改了下次重建会被覆盖；要改就改**源**
+3. **路径写死 = 静默失效** —— 读一个不存在的文件通常**不报错**，返回空
+
+自测：`python -m wbb.migrate`（23 项）
+
+---
+
 ## 命令速查
 
 | 想干什么 | 命令 |
@@ -160,7 +191,9 @@ finally:
 | 看谁占着 | `python -m wbb.cli --bus B locks` |
 | 概况 | `python -m wbb.cli --bus B status` |
 | 生成视图 | `python -m wbb.cli --bus B view <关键词>` |
-| 自测 | `python -m wbb.bus` / `python -m wbb.lease` |
+| 生成接续文本 | `python -m wbb.cli migrate render --identity id.md --bus B --out handoff.md` |
+| 迁移后查旧引用 | `python -m wbb.cli migrate audit --root . --old <旧> --new <新>` |
+| 自测 | `python -m wbb.bus` / `python -m wbb.lease` / `python -m wbb.migrate` |
 | 开箱自检 | `python tools/usability_check.py` |
 
 ---
@@ -177,4 +210,4 @@ finally:
 
 ---
 
-→ 相关：[04 · 总线协议](04-bus-protocol.md)（列定义与锁）｜[05 · 注入点](05-injection.md)（怎么让"通知"真的送达）｜[10 · 资源租约](10-resource-lease.md)
+→ 相关：[04 · 总线协议](04-bus-protocol.md)（列定义与锁）｜[05 · 注入点](05-injection.md)（怎么让"通知"真的送达）｜[10 · 资源租约](10-resource-lease.md)｜[14 · 运行时迁移](14-runtime-migration.md)

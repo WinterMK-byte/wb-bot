@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wb-bot"
-version = "0.3.3"
-description = "多 Agent 协作的纪律层：append-only 总线 / 席位边界 / 跨运行时交接契约 / 一份从真实事故长出来的反错清单"
+version = "0.4.0"
+description = "多 Agent 协作的纪律层：append-only 总线 / 席位边界 / 跨运行时交接 / 运行时迁移 / 一份从真实事故长出来的反错清单"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.9"
 license = { text = "MIT" }

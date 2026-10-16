@@ -9,7 +9,7 @@
 | 篇 | 回答 |
 |---|---|
 | [01 · 为什么](01-why.md) | 这套东西到底解决什么 |
-| [11 · 怎么用（四种场景）](11-usage.md) | 我的情况该怎么做 —— **挑一个照做** |
+| [11 · 怎么用（五种场景）](11-usage.md) | 我的情况该怎么做 —— **挑一个照做** |
 | ★ [lessons · 教训库](lessons.md) | **本项目最不易被抄走的部分**（真实事故） |
 
 ---
@@ -48,6 +48,16 @@
 
 ---
 
+## 迁移（**执行方是耗材，这是配套的正事**）
+
+| 篇 | 内容 |
+|---|---|
+| ★ [14 · 运行时迁移](14-runtime-migration.md) | 会话会被重建 —— **接续要带什么、搬完要查什么**（含可运行实现 `wbb/migrate.py`） |
+
+> 回答：**换了壳之后，怎么接着干、怎么不丢身份、怎么不静默失效。**
+
+---
+
 ## 快速上手（30 秒）
 
 ```bash
@@ -55,6 +65,14 @@ git clone https://github.com/WinterMK-byte/wb-bot && cd wb-bot
 cp templates/00-bus.md ./00-bus.md
 python -m wbb.cli --bus ./00-bus.md append "alice|architect|拆了两个任务，派给 bob|done|tasks/T01.md|bob"
 python -m wbb.cli --bus ./00-bus.md verify
+```
+
+**要迁移一条长期会话时**（会话被重建 / 换机 / 换代）：
+
+```bash
+cp templates/06-identity-block.md ./identity.md     # 先写身份块
+python -m wbb.cli migrate render --identity ./identity.md --bus ./00-bus.md --out ./接续文本.md
+python -m wbb.cli migrate audit  --root . --old <旧位置> --new <新位置>   # 跑到零命中为止
 ```
 
 ---
