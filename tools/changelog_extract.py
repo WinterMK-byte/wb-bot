@@ -81,7 +81,9 @@ def main(argv=None):
             print(v)
         return 0
 
-    version = _positional(argv)
+    # ★ 必须 strip：Windows 的 `--list` 会输出 CRLF，shell 里 `$(...)` 取到的是 "0.5.0\r"，
+    #   于是「明明在 CHANGELOG 里却报没有」。CI 跑在 ubuntu（LF）所以一直没暴露。
+    version = (_positional(argv) or "").strip()
     if not version:
         print("用法：python tools/changelog_extract.py <版本> [--out 文件]")
         print("可用版本：%s" % ", ".join(versions_in(text)))
@@ -147,6 +149,15 @@ def _selftest():
     print("  %s %-26s %s" % ("✅" if ok else "❌", "--list", "能列出全部版本"))
     if not ok:
         fails.append("list")
+
+    # ★ 回归：带 \r / 空格 的版本参数必须仍然取得到。
+    #   现场是 Windows 的 `--list` 输出 CRLF，shell 里 `$(...)` 拿到 "0.5.0\r"
+    #   → 报「明明在 CHANGELOG 里却没有」。CI 在 ubuntu（LF）永远发现不了。
+    r = run(["0.5.0\r"])
+    ok = r.returncode == 0 and "甲" in r.stdout
+    print("  %s %-26s %s" % ("✅" if ok else "❌", "参数带 \\r 仍可抽", "Windows CRLF 场景"))
+    if not ok:
+        fails.append("crlf")
 
     shutil.rmtree(tmp, ignore_errors=True)
     print("结果：%s" % ("✅ 全过" if not fails else "❌ 失败 %s" % fails))

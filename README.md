@@ -271,8 +271,9 @@ python -m wbb.lease
 
 | 件 | 作用 |
 |---|---|
-| [`docs/14-runtime-migration.md`](docs/14-runtime-migration.md) | **迁移机制** —— 为什么执行方必然被重建 / 接续必须带三样 / 搬完必须查什么 |
+| [`docs/14-runtime-migration.md`](docs/14-runtime-migration.md) | **迁移机制** —— 为什么执行方必然被重建 / 接续必须带三样 / 搬完必须查什么 / ★ **哪些会变、哪些不变**（迁移**反复出错**的根） |
 | [`wbb/migrate.py`](wbb/migrate.py) | 实现：`render` 生成接续文本 · `audit` 扫出还指着旧位置的引用（**23 项自测**） |
+| ★ [`tools/migrate_check.py`](tools/migrate_check.py) | **迁移架构门禁** —— 把「会变的没被写死 / 权威可达 / 入口已挂」变成机械可查（**6 项自测 + 4 个反向用例**） |
 | [`templates/06-identity-block.md`](templates/06-identity-block.md) | **身份块模板**（`render --identity` 的输入） |
 
 ```bash
@@ -282,6 +283,10 @@ python -m wbb.cli migrate render --identity ./identity.md --bus ./00-bus.md --ou
 python -m wbb.cli migrate audit --root . --old <旧位置> --new <新位置>
 # 参考实现自测
 python -m wbb.migrate
+# ★ 迁移架构门禁（会变的不写死 / 权威可达 / 入口已挂）
+python tools/migrate_check.py --index seats.json --skeleton SKELETON.md \
+       --graft IDENTITY.md --needle SKELETON
+python tools/migrate_check.py --demo          # 端到端演示
 ```
 
 **两条最容易被跳过的纪律**：
@@ -309,12 +314,12 @@ python -m wbb.migrate
 | [`docs/11-usage.md`](docs/11-usage.md) | **怎么用（五种场景）** —— 最短上手 / 接进项目 / MCP / 资源租约 / 迁移 |
 | [`docs/12-handoff-discipline.md`](docs/12-handoff-discipline.md) | **交接纪律** —— 派单为什么会丢：**投递双通道 / 回执义务 / 三种失败模式** |
 | [`docs/13-auto-wake.md`](docs/13-auto-wake.md) | **一句话派单与自动唤醒** —— 含**实测数据**（30 秒延迟）、两条路、代价边界 |
-| ★ [`docs/14-runtime-migration.md`](docs/14-runtime-migration.md) | **运行时迁移** —— 执行方是**耗材**：接续要带什么（身份 / 在办事实 / 未闭口）、搬完要查什么（写死路径的**静默失效**） |
-| ★ [`docs/15-adopting.md`](docs/15-adopting.md) | **接入指南** —— 三种接入深度怎么选 · 哪些参数**必须你自己定** · **「接了才算接上」的三个判据** · 会白干的反模式 |
-| [`docs/lessons.md`](docs/lessons.md) | **10 条真实事故教训**（本项目重点） |
+| ★ [`docs/14-runtime-migration.md`](docs/14-runtime-migration.md) | **运行时迁移** —— 执行方是**耗材**：接续要带什么（身份 / 在办事实 / 未闭口）、搬完要查什么（写死路径的**静默失效**）、★ **会变的 vs 不变的 + 迁移四律** |
+| [`docs/15-adopting.md`](docs/15-adopting.md) | **接入指南** —— 三种接入深度怎么选 · 哪些参数**必须你自己定** · **「接了才算接上」的三个判据** · 会白干的反模式 |
+| [`docs/lessons.md`](docs/lessons.md) | **11 条真实事故教训**（本项目重点） |
 | [`skill/SKILL.md`](skill/SKILL.md) | 给 Agent 用的操作指引（可直接装成 Skill） |
 | [`docs/README.md`](docs/README.md) | **文档索引**（按「该先读哪篇」排） |
-| [`CHANGELOG.md`](CHANGELOG.md) | **更新日志**（v0.1 → v0.5.0） |
+| [`CHANGELOG.md`](CHANGELOG.md) | **更新日志**（v0.1 → v0.6.0） |
 | [`ROADMAP.md`](ROADMAP.md) | **路线图** —— 已交付 / 正在做 / **明确不做**，以及**怎么影响它** |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | 怎么提 issue / PR（★ 最欢迎**真实事故**） |
 
@@ -418,7 +423,7 @@ python tools/privacy_check.py
         ↓
    ★ 加一个自测项，证明它抓得到错   ←── 没有这一步，等于等着它再犯
         ↓
-   进 CI，长期守着（还有版本 / 文档 / 隐私三道门禁）
+   进 CI，长期守着（还有版本 / 文档 / 迁移 / 隐私四道门禁）
         ↓
    下一个人用的时候，这个坑已经被封住了
 ```
@@ -435,6 +440,7 @@ python -m wbb.migrate             # 迁移自测（23 项）
 python tools/usability_check.py   # 开箱实测（模拟新人拿到仓库）
 python tools/version_check.py     # ★ 版本三处一致
 python tools/link_check.py        # ★ 相对链接可达 + docs 索引完整
+python tools/migrate_check.py --selftest   # ★ 迁移架构门禁（会变的不写死）
 python tools/privacy_check.py     # 脱敏门禁（零命中才算过）
 ```
 
