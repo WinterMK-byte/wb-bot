@@ -28,6 +28,7 @@ jobs:
           python -m py_compile wbb/bus.py wbb/lease.py wbb/migrate.py wbb/cli.py mcp_server.py
           python -m py_compile tools/privacy_check.py tools/usability_check.py tools/check_mcp.py
           python -m py_compile tools/version_check.py tools/link_check.py tools/changelog_extract.py
+          python -m py_compile tools/migrate_check.py
 
       - name: 总线核心自测（20 项：并发 / 重号 / 行序 / 表格连续性 / 归档 / 锁）
         run: python -m wbb.bus
@@ -127,6 +128,8 @@ jobs:
         run: |
           python tools/version_check.py
           python tools/link_check.py
+          python tools/migrate_check.py --selftest
+          python tools/migrate_check.py --demo
 
   gates:
     name: 仓库一致性（版本 / 文档 / 变更日志）
@@ -144,6 +147,14 @@ jobs:
           python tools/version_check.py --selftest
           python tools/link_check.py --selftest
           python tools/changelog_extract.py --selftest
+          python tools/migrate_check.py --selftest
+
+      # ★ 迁移架构门禁 —— 专抓「会变的东西被写死了」。
+      #   本仓库自己踩过四起同形事故（见 docs/14 §六）：迁移能力没写进 skill /
+      #   任务写死路径 / SOP 漏了迁移 / 席位表把自己钉在旧工作区。
+      #   这一类失效**全都不报错**，所以只能靠判据守着。
+      - name: 迁移架构门禁（会变的不写死 / 权威可达 / 入口已挂）
+        run: python tools/migrate_check.py --demo
 
       - name: 版本三处一致
         run: python tools/version_check.py
