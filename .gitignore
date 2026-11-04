@@ -33,3 +33,6 @@ venv/
 .idea/
 .DS_Store
 Thumbs.db
+
+# 代码库体检索引（repowise 生成，体积可达仓库本身 1 倍，切勿公开）
+.repowise/
